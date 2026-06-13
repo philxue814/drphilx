@@ -1,26 +1,229 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-deep: #050505;
+  --bg-surface: #0c0c0c;
+  --bg-glass: rgba(255, 255, 255, 0.04);
+  --text-primary: #fafafa;
+  --text-muted: #a1a1aa;
+  --accent-red: #c41e3a;
+  --accent-red-bright: #e11d48;
+  --accent-red-soft: rgba(196, 30, 58, 0.15);
+  --border-glass: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-deep);
+  --color-foreground: var(--text-primary);
+  --color-accent: var(--accent-red);
+  --color-accent-bright: var(--accent-red-bright);
+  --color-muted: var(--text-muted);
+  --color-surface: var(--bg-surface);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01" 1, "cv11" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.type-eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.type-display {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+}
+
+.type-body {
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 65ch;
+}
+
+.type-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
+::selection {
+  background: rgba(196, 30, 58, 0.35);
+  color: white;
+}
+
+.ambient-glow {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196, 30, 58, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(196, 30, 58, 0.06), transparent);
+}
+
+.book-scroll-track {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.book-scroll-track::-webkit-scrollbar {
+  display: none;
+}
+
+.book-page {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, #121212 0%, #080808 55%, #050505 100%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.book-page-inner {
+  padding: 1rem 1rem 1.15rem;
+}
+
+.book-page-minor {
+  border-radius: 0.75rem;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.book-page-minor .book-page-inner {
+  padding: 0.85rem 0.9rem 1rem;
+}
+
+.book-page-meta {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.chapter-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 30, 58, 0.45) 50%,
+    transparent 100%
+  );
+}
+
+.btn-shimmer {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: min-content;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  overflow: hidden;
+  background-size: 250%;
+  background-position: left;
+  transition:
+    background-position 1s ease,
+    transform 0.15s ease,
+    box-shadow 0.3s ease;
+}
+
+.btn-shimmer::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  width: calc(100% - 3px);
+  height: calc(100% - 3px);
+  border-radius: inherit;
+  transform: translate(-50%, -50%);
+  transition: background-position 1s ease;
+}
+
+.btn-shimmer > * {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.btn-shimmer:hover {
+  background-position: right;
+}
+
+.btn-shimmer:hover::before {
+  background-position: right;
+}
+
+.btn-shimmer:active {
+  transform: scale(0.95);
+}
+
+.btn-shimmer:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-shimmer:disabled:active {
+  transform: none;
+}
+
+.btn-shimmer--primary {
+  background-image: linear-gradient(
+    to right,
+    #7a1428,
+    var(--accent-red-bright),
+    #7a1428,
+    #7a1428,
+    var(--accent-red-bright),
+    #7a1428
+  );
+  color: white;
+}
+
+.btn-shimmer--primary::before {
+  background-color: var(--accent-red);
+}
+
+.btn-shimmer--secondary {
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.14),
+    rgba(196, 30, 58, 0.55),
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.08),
+    rgba(196, 30, 58, 0.55),
+    rgba(255, 255, 255, 0.14)
+  );
+  color: white;
+}
+
+.btn-shimmer--secondary::before {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

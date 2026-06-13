@@ -1,0 +1,1240 @@
+import { writeFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = join(__dirname, "..");
+
+const projects = [
+  {
+    slug: "guildford-landing",
+    title: "Guildford Eye Clinic Landing Page",
+    category: "web",
+    catLabel: "Web / Design",
+    client: "Guildford Eye Clinic",
+    bottleneck: "The clinic needed a premium web presence to attract patients online.",
+    solution: "Built guildfordeyeclinic.ca: a multilingual, SEO-ready landing page with structured content and conversion-focused design.",
+    outcome: "A live patient-facing site that establishes trust and drives exam bookings.",
+    image: "public/projects/screenshot-exam-equipment.jpg",
+    links: [{ label: "guildfordeyeclinic.ca", href: "https://guildfordeyeclinic.ca" }],
+  },
+  {
+    slug: "ai-seo",
+    title: "Google SEO + AI SEO",
+    category: "marketing",
+    catLabel: "Marketing",
+    client: "Guildford Eye Clinic",
+    bottleneck: "Guildford Eye Clinic was nearly invisible in search without an agency budget.",
+    solution: "Built a dual SEO system for the clinic: Google Business Profile optimization plus AI-driven local content strategy.",
+    outcome: "Improved discoverability on Google Search and Maps without outsourcing.",
+    image: "public/projects/guildford-hero-oct.jpg",
+    links: [
+      { label: "guildfordeyeclinic.ca", href: "https://guildfordeyeclinic.ca" },
+      { label: "Google Maps listing", href: "https://maps.google.com/?q=Guildford+Eye+Clinic+Surrey+BC" },
+    ],
+  },
+  {
+    slug: "social-automation",
+    title: "AI Social Media Automation",
+    category: "marketing",
+    catLabel: "Marketing",
+    client: "Guildford Eye Clinic",
+    bottleneck: "Manual social posting consumed hours every week across Instagram and Facebook.",
+    solution: "Automated @guildfordeyeclinic video posts twice weekly and short posts once weekly with AI-driven content pipelines.",
+    outcome: "Consistent clinic social presence with zero daily manual effort.",
+    image: "public/projects/instagram-logo.png",
+    imageFit: "contain",
+    logos: [
+      "public/projects/instagram-logo.png",
+      "public/projects/youtube-logo.png",
+      "public/projects/tiktok-logo.svg",
+    ],
+    links: [
+      { label: "Instagram @guildfordeyeclinic", href: "https://www.instagram.com/guildfordeyeclinic/" },
+      { label: "Facebook @guildfordeyeclinic", href: "https://www.facebook.com/guildfordeyeclinic/" },
+    ],
+  },
+  {
+    slug: "coverage-system",
+    title: "Guildford Coverage System",
+    category: "healthcare",
+    catLabel: "Healthcare",
+    bottleneck: "Scheduling vacation and coverage for 7–8 doctors created constant administrative chaos.",
+    solution: "Built an automated system that matches vacation requests with available coverage physicians.",
+    outcome: "Coverage planning runs itself, with fewer gaps and less back-and-forth.",
+  },
+  {
+    slug: "options-alerts",
+    title: "Options Trading Alert System",
+    category: "fintech",
+    catLabel: "FinTech",
+    bottleneck: "Capturing market opportunities required daily monitoring that wasn't sustainable.",
+    solution: "Automated sell put / sell call alerts using technical analysis and volatility measures via APIs and MCPs.",
+    outcome: "Market signals delivered seamlessly to run on any device.",
+  },
+  {
+    slug: "childrens-books",
+    title: "Children's Books (2 Titles)",
+    category: "publishing",
+    catLabel: "Publishing",
+    bottleneck: "Publishing children's books traditionally is slow, expensive, and gatekept.",
+    solution: "AI-assisted creation and production of Captain Clear: The Epic Myopia Wars and Money Adventures of the Meadow.",
+    outcome: "Two live Amazon titles, from concept to shelf without a publisher.",
+    image: "public/projects/captain-clear.jpg",
+    gallery: ["public/projects/captain-clear.jpg", "public/projects/money-meadow.jpg"],
+    links: [
+      { label: "Captain Clear on Amazon", href: "https://www.amazon.ca/Captain-Clear-Epic-Myopia-Wars-ebook/dp/B0GQQN25ZJ" },
+      { label: "Money Adventures on Amazon", href: "https://www.amazon.ca/Money-Adventures-Meadow-Childrens-Entrepreneurship-ebook/dp/B0GS745M3G" },
+    ],
+  },
+  {
+    slug: "video-cleaner",
+    title: "Video Watermark & Logo Removal",
+    category: "media",
+    catLabel: "Media AI",
+    bottleneck: "Watermarked or logo-stamped footage was unusable for production.",
+    solution: "Built an AI pipeline to automatically remove watermarks and logos from any video.",
+    outcome: "Clean, usable video assets without manual editing.",
+  },
+  {
+    slug: "fax-summarizer",
+    title: "Fax Referral Summarizer",
+    category: "healthcare",
+    catLabel: "Healthcare",
+    bottleneck: "Inbound fax referrals piled up unstructured and slowed patient intake.",
+    solution: "AI system that organizes, categorizes, and summarizes incoming fax referrals automatically.",
+    outcome: "Faster referral processing and cleaner administrative workflows.",
+  },
+];
+
+function projectImage(p, size = "card") {
+  if (p.image) return p.image;
+  const w = size === "mobile" ? 1200 : 1920;
+  const h = size === "mobile" ? 800 : 1080;
+  return `https://picsum.photos/seed/${p.slug}/${w}/${h}`;
+}
+
+function buildProjectLogos(p, { featured = false, compact = false, minor = false, surface = "card" } = {}) {
+  if (!p.logos?.length) return "";
+  const height = surface === "hero"
+    ? "max-h-16 md:max-h-20"
+    : featured
+      ? "max-h-[120px] md:max-h-[150px]"
+      : compact
+        ? "max-h-[72px]"
+        : surface === "mobile"
+          ? "max-h-[108px]"
+          : "max-h-[88px] md:max-h-[100px]";
+  const fade = surface === "mobile"
+    ? `mix-blend-luminosity contrast-125 ${minor ? "opacity-15" : "opacity-25"}`
+    : surface === "hero"
+      ? "mix-blend-luminosity contrast-125 opacity-30"
+      : `mix-blend-luminosity contrast-125 ${compact ? "opacity-20" : "opacity-30"} transition-transform duration-700 ease-out group-hover:scale-105`;
+  const container = surface === "hero"
+    ? `flex items-center justify-center gap-5 py-6 md:gap-8 md:py-8`
+    : `absolute inset-0 flex items-center justify-center gap-3 p-3 md:gap-5 md:p-4`;
+  return `<div class="${container}">${p.logos
+    .map(
+      (src) =>
+        `<img src="${src}" alt="" class="w-auto max-w-[28%] shrink-0 object-contain ${height} ${fade}" />`
+    )
+    .join("")}</div>`;
+}
+
+function projectImageClasses(p, { surface = "card", compact = false, minor = false } = {}) {
+  if (p.imageFit === "contain") {
+    const hover = surface === "card"
+      ? "transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+      : "";
+    return `absolute inset-0 bg-contain bg-center bg-no-repeat opacity-95 ${hover}`;
+  }
+
+  const opacity = surface === "mobile"
+    ? minor ? "opacity-15" : "opacity-25"
+    : compact ? "opacity-20" : "opacity-30";
+  const hover = surface === "card"
+    ? "transition-transform duration-700 ease-out group-hover:scale-105"
+    : "";
+
+  return `absolute inset-0 bg-cover bg-center mix-blend-luminosity contrast-125 ${opacity} ${hover}`.trim();
+}
+
+function buildProjectLinks(links, compact = false) {
+  if (!links?.length) return "";
+  const cls = compact
+    ? "inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-white hover:border-[#c41e3a]/40 hover:text-[#c41e3a]"
+    : "inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:border-[#c41e3a]/40 hover:text-[#c41e3a]";
+  return `<div class="flex flex-wrap gap-2">${links
+    .map(
+      (link) =>
+        `<a href="${link.href}" target="_blank" rel="noopener noreferrer" class="${cls}" onclick="event.stopPropagation()">${link.label} ↗</a>`
+    )
+    .join("")}</div>`;
+}
+
+const categoryTier = {
+  web: "primary",
+  marketing: "primary",
+  healthcare: "standard",
+  fintech: "standard",
+  media: "standard",
+  publishing: "minor",
+};
+
+const tierSortOrder = { primary: 0, standard: 1, minor: 2 };
+
+function getTier(project) {
+  return categoryTier[project.category];
+}
+
+const allViewOrder = [
+  "guildford-landing",
+  "ai-seo",
+  "social-automation",
+  "childrens-books",
+  "coverage-system",
+  "options-alerts",
+  "fax-summarizer",
+  "video-cleaner",
+];
+
+const allViewSpans = [
+  "md:col-span-7 md:row-span-2",
+  "md:col-span-5 md:row-span-2",
+  "md:col-span-8",
+  "md:col-span-4",
+  "md:col-span-6",
+  "md:col-span-6",
+  "md:col-span-6",
+  "md:col-span-6",
+];
+
+function sortForDisplay(items, filter = "all") {
+  if (filter === "all" && items.length === projects.length) {
+    return [...items].sort(
+      (a, b) => allViewOrder.indexOf(a.slug) - allViewOrder.indexOf(b.slug)
+    );
+  }
+
+  return [...items].sort((a, b) => {
+    const tierDiff = tierSortOrder[getTier(a)] - tierSortOrder[getTier(b)];
+    if (tierDiff !== 0) return tierDiff;
+    return projects.indexOf(a) - projects.indexOf(b);
+  });
+}
+
+const services = [
+  { title: "Workflow Automation", description: "Eliminate repetitive manual tasks with custom AI pipelines built around how your team actually works.", outcome: "Hours reclaimed every week" },
+  { title: "AI-Driven Marketing", description: "Social media, SEO, and content systems that run consistently without daily manual effort.", outcome: "Always-on visibility" },
+  { title: "Operations Intelligence", description: "Scheduling, document processing, alerts, and reporting tailored to your specific business operations.", outcome: "Fewer errors, faster decisions" },
+  { title: "Productivity Multipliers", description: "AI tools that let a small team produce output that used to require a much larger one.", outcome: "More capacity, same headcount" },
+];
+
+const engagementPaths = [
+  { title: "Done-for-You", description: "I build the complete custom AI system end-to-end for your specific workflow." },
+  { title: "Consulting", description: "I identify your bottlenecks, architect the right solution, and map the implementation path." },
+  { title: "Coaching", description: "I teach your team to build, maintain, and extend AI automation independently." },
+];
+
+const processSteps = [
+  { step: "01", title: "Discover", description: "Map your specific bottlenecks and where AI creates the most leverage." },
+  { step: "02", title: "Architect", description: "Design a custom solution, not a template, around your workflow." },
+  { step: "03", title: "Build", description: "Ship working automation with real integrations and measurable output." },
+  { step: "04", title: "Deploy", description: "Launch into production with monitoring and reliability built in." },
+  { step: "05", title: "Train", description: "Hand off with documentation and coaching so your team owns it." },
+];
+
+const VANISH = { x: 720, y: 205 };
+const RIVER_BODY =
+  "M 180 960 L 1260 960 C 1160 780, 1040 520, 940 360 C 860 270, 790 230, 720 210 C 650 230, 580 270, 500 360 C 400 520, 280 780, 180 960 Z";
+const LEFT_BANK =
+  "M 180 960 C 280 780, 400 520, 500 360 C 580 270, 650 230, 720 210";
+const RIGHT_BANK =
+  "M 1260 960 C 1160 780, 1040 520, 940 360 C 860 270, 790 230, 720 210";
+const BACK_RANGE =
+  "M 460 310 L 540 200 L 620 240 L 720 130 L 820 240 L 900 200 L 980 310 L 900 330 L 720 290 L 540 330 Z";
+const LEFT_MOUNTAIN =
+  "M 0 960 L 0 40 L 120 20 L 200 100 L 280 40 L 360 130 L 400 80 L 440 200 L 400 420 L 320 620 L 220 820 L 180 960 Z";
+const RIGHT_MOUNTAIN =
+  "M 1440 960 L 1440 40 L 1320 20 L 1240 100 L 1160 40 L 1080 130 L 1040 80 L 1000 200 L 1040 420 L 1120 620 L 1220 820 L 1260 960 Z";
+
+function buildRiverRipples() {
+  return [
+    { y: 900, half: 500 },
+    { y: 820, half: 420 },
+    { y: 740, half: 340 },
+    { y: 660, half: 270 },
+    { y: 580, half: 210 },
+    { y: 500, half: 160 },
+  ].map(
+    ({ y, half }) =>
+      `M ${VANISH.x - half} ${y} Q ${VANISH.x} ${y - 4} ${VANISH.x + half} ${y}`
+  );
+}
+
+function buildRiverFlowLines(count) {
+  const paths = [];
+  for (let i = 0; i < count; i++) {
+    const t = (i - (count - 1) / 2) / (count - 1);
+    const xBottom = VANISH.x + t * 520;
+    const xTop = VANISH.x + t * 36;
+    const c1x = xBottom + (xTop - xBottom) * 0.35;
+    const c2x = xBottom + (xTop - xBottom) * 0.72;
+    paths.push(`M ${xBottom} 960 C ${c1x} 720, ${c2x} 420, ${xTop} ${VANISH.y}`);
+  }
+  return paths;
+}
+
+const riverRippleSvg = buildRiverRipples()
+  .map(
+    (d, i) =>
+      `<path d="${d}" stroke="rgba(255,255,255,0.06)" stroke-width="${i < 2 ? 1.2 : 0.8}" fill="none" stroke-linecap="round" opacity="${(0.35 + (5 - i) * 0.08).toFixed(2)}"/>`
+  )
+  .join("");
+
+const riverFlowSvg = buildRiverFlowLines(9)
+  .map((d, i) => {
+    const center = i === 4;
+    return `<path d="${d}" stroke="${center ? "rgba(225,29,72,0.14)" : "rgba(255,255,255,0.04)"}" stroke-width="${center ? 1.4 : 0.7}" fill="none" stroke-linecap="round" opacity="${(center ? 0.75 : 0.4).toFixed(2)}"/>`;
+  })
+  .join("");
+
+const particlesHtml = Array.from({ length: 36 }, (_, i) => {
+  const onRiver = i < 28;
+  const depth = onRiver ? (i % 7) / 7 : 0;
+  const spread = 520 * (1 - depth * 0.75);
+  const left = 50 + (((i * 19) % 100) / 100 - 0.5) * (spread / 7.2);
+  const top = onRiver ? 62 + depth * 28 + (i % 3) * 2 : 20 + (i % 12) * 5;
+  const size = 1 + (i % 2);
+  const bg =
+    i % 6 === 0
+      ? "rgba(255,77,109,0.55)"
+      : i % 4 === 0
+        ? "rgba(225,29,72,0.35)"
+        : "rgba(255,255,255,0.15)";
+  const op = (0.12 + (i % 3) * 0.06).toFixed(2);
+  return `<span class="absolute rounded-full" style="width:${size}px;height:${size}px;left:${left}%;top:${top}%;background:${bg};opacity:${op}"></span>`;
+}).join("");
+
+const mobileChapterOrder = ["web", "marketing", "publishing", "healthcare", "fintech", "media"];
+const mobileChapterLabels = {
+  web: "Web Design",
+  marketing: "Marketing",
+  healthcare: "Healthcare",
+  fintech: "FinTech",
+  publishing: "Publishing",
+  media: "Media AI",
+};
+
+function buildProjectPanel(p, minor = false) {
+  const outcomeBlock = minor
+    ? `<p class="text-xs leading-relaxed text-white/45 line-clamp-2">${p.outcome}</p>`
+    : `<div class="rounded-xl border border-white/10 bg-black/35 p-3.5 backdrop-blur-sm">
+          <p class="text-[10px] font-medium tracking-[0.22em] text-[#c41e3a] uppercase">Outcome</p>
+          <p class="mt-1.5 text-sm leading-relaxed text-white/85">${p.outcome}</p>
+        </div>`;
+
+  return `
+    <article class="book-page w-full shrink-0 snap-center snap-always ${minor ? "book-page-minor" : ""}" data-chapter-page>
+      ${p.logos?.length ? buildProjectLogos(p, { surface: "mobile", minor }) : `<div class="${projectImageClasses(p, { surface: "mobile", minor })}" style="background-image:url(${projectImage(p, "mobile")})"></div>`}
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/88 to-[#0a0a0a]/35"></div>
+      <div class="book-page-inner relative flex flex-col ${minor ? "gap-2.5" : "gap-3.5"}">
+        <div>
+          <h4 class="${minor ? "text-base" : "text-lg"} font-semibold leading-snug text-white">${p.title}</h4>
+          <p class="${minor ? "mt-2 text-xs line-clamp-2" : "mt-3 text-sm"} leading-relaxed text-white/65">${p.bottleneck}</p>
+        </div>
+        ${outcomeBlock}
+        <div class="flex flex-col ${minor ? "gap-2" : "gap-3"}">
+          ${buildProjectLinks(p.links, minor)}
+        </div>
+      </div>
+    </article>`;
+}
+
+function buildMobileChapterPages(category, chapterIndex) {
+  const items = projects.filter((p) => p.category === category);
+  const multi = items.length > 1;
+  const minor = getTier(items[0]) === "minor";
+  const panels = items.map((p) => buildProjectPanel(p, minor)).join("");
+  const track = multi
+    ? `<div class="book-scroll-track flex w-full snap-x snap-mandatory overflow-x-auto scroll-smooth" data-chapter-scroll>${panels}</div><div class="mt-2.5 flex items-center justify-center gap-1.5" data-chapter-dots></div>`
+    : buildProjectPanel(items[0], minor);
+  const spacing =
+    chapterIndex < mobileChapterOrder.length - 1 ? (minor ? "mb-4" : "mb-6") : "";
+  const header = `<header class="mb-3 ${minor ? "opacity-70" : ""}"><p class="book-page-meta ${minor ? "text-white/25 tracking-[0.2em]" : ""}">${mobileChapterLabels[category]}</p></header>`;
+
+  return `<section class="mobile-chapter w-full ${spacing}" data-chapter="${category}">${header}${track}</section>`;
+}
+
+const mobileWorkChapters = mobileChapterOrder
+  .map((cat, i) => buildMobileChapterPages(cat, i))
+  .join("");
+
+function getBentoSpan(project, filtered, filter = "all") {
+  if (filter === "all" && filtered.length === projects.length) {
+    const index = filtered.findIndex((item) => item.slug === project.slug);
+    return allViewSpans[index] ?? "md:col-span-6";
+  }
+
+  const tier = getTier(project);
+  const total = filtered.length;
+
+  if (total === 1) {
+    return tier === "minor" ? "md:col-span-6" : "md:col-span-12 md:row-span-2";
+  }
+
+  if (tier === "primary") {
+    const primaryItems = filtered.filter((item) => getTier(item) === "primary");
+    const index = primaryItems.indexOf(project);
+
+    if (primaryItems.length === 1) return "md:col-span-12 md:row-span-2";
+    if (primaryItems.length === 2) {
+      return index === 0
+        ? "md:col-span-7 md:row-span-2"
+        : "md:col-span-5 md:row-span-2";
+    }
+
+    const spans = [
+      "md:col-span-7 md:row-span-2",
+      "md:col-span-5 md:row-span-2",
+      "md:col-span-12",
+    ];
+    return spans[index] ?? "md:col-span-6";
+  }
+
+  if (tier === "minor") return "md:col-span-4";
+
+  const standardItems = filtered.filter((item) => getTier(item) === "standard");
+  const index = standardItems.indexOf(project);
+  if (standardItems.length === 1) return "md:col-span-8";
+  return index % 2 === 0 ? "md:col-span-6" : "md:col-span-6";
+}
+
+function buildDesktopProjectCard(p, filtered, filter = "all") {
+  const spanClass = getBentoSpan(p, filtered, filter);
+  const tier = getTier(p);
+  const compact = tier === "minor";
+  const featured = !compact && spanClass.includes("row-span-2");
+  const layout = featured
+    ? "grid h-full min-h-[460px] grid-rows-[1fr_auto] md:min-h-[520px] md:grid-cols-[1.05fr_0.95fr] md:grid-rows-1"
+    : compact
+      ? "flex h-full min-h-[200px] flex-row"
+      : "flex h-full min-h-[260px] flex-col";
+  const imageWrap = featured
+    ? "relative overflow-hidden min-h-[220px] md:min-h-full"
+    : compact
+      ? "relative h-full w-[38%] shrink-0 min-h-[200px] overflow-hidden"
+      : "relative h-36 shrink-0 overflow-hidden";
+  const imageOpacity = compact ? "opacity-20" : "opacity-30";
+  const imageGradient = compact
+    ? "bg-gradient-to-r from-transparent via-[#050505]/30 to-[#050505]/92"
+    : "bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent md:bg-gradient-to-r md:from-transparent md:via-[#050505]/25 md:to-[#050505]/90";
+  const titleClass = featured
+    ? "type-display mt-2 text-2xl leading-tight text-white transition-colors duration-300 group-hover:text-[#c41e3a] lg:text-[1.75rem]"
+    : compact
+      ? "type-display mt-2 text-base leading-snug text-white transition-colors duration-300 group-hover:text-[#c41e3a]"
+      : "type-display mt-2 text-lg leading-snug text-white transition-colors duration-300 group-hover:text-[#c41e3a] lg:text-xl";
+  const bottleneckClass = featured
+    ? "mt-2 line-clamp-3 text-base leading-relaxed text-[#a1a1aa]"
+    : compact
+      ? "mt-2 line-clamp-2 text-xs leading-relaxed text-[#a1a1aa]"
+      : "mt-2 line-clamp-2 text-sm leading-relaxed text-[#a1a1aa]";
+  const outcomeClass = featured
+    ? "line-clamp-2 text-sm leading-relaxed text-white/55"
+    : compact
+      ? "line-clamp-1 text-xs leading-relaxed text-white/40"
+      : "line-clamp-1 text-sm leading-relaxed text-white/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100";
+  const contentPad = compact ? "flex-1 p-5" : "p-7 md:p-8 lg:p-9";
+  const footerGap = compact
+    ? "mt-4 flex items-end justify-between gap-3 border-t border-white/[0.05] pt-3"
+    : "mt-6 flex items-end justify-between gap-4 border-t border-white/[0.06] pt-5";
+  const labelClass = compact
+    ? "font-mono text-[10px] tracking-wide text-white/35"
+    : "font-mono text-[11px] tracking-wide text-white/35";
+  const iconClass = compact
+    ? "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all duration-300 group-hover:border-[#c41e3a] group-hover:bg-[#c41e3a]/10 group-hover:text-[#c41e3a]"
+    : "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all duration-300 group-hover:border-[#c41e3a] group-hover:bg-[#c41e3a]/10 group-hover:text-[#c41e3a]";
+
+  return `
+    <article class="project-card group relative h-full cursor-pointer overflow-hidden ${compact ? "rounded-xl" : "rounded-2xl"} border border-white/[0.08] bg-[#080808]/80 transition-[border-color,box-shadow] duration-500 hover:border-[#c41e3a]/35 hover:shadow-[0_20px_60px_rgba(196,30,58,0.12)] ${spanClass}" data-category="${p.category}" data-slug="${p.slug}" data-tier="${tier}">
+      <div class="${layout}">
+        <div class="${imageWrap}">
+          ${p.logos?.length ? buildProjectLogos(p, { featured, compact, surface: "card" }) : `<div class="${projectImageClasses(p, { surface: "card", compact })}" style="background-image:url(${projectImage(p, "card")})"></div>`}
+          <div class="absolute inset-0 ${imageGradient}"></div>
+        </div>
+        <div class="relative flex flex-col justify-between ${contentPad}">
+          <div>
+            <p class="${labelClass}">${p.catLabel}</p>
+            <h3 class="${titleClass}">${p.title}</h3>
+            <p class="${bottleneckClass}">${p.bottleneck}</p>
+          </div>
+          <div class="${footerGap}">
+            <p class="${outcomeClass}">${p.outcome}</p>
+            <span class="${iconClass}">↗</span>
+          </div>
+        </div>
+      </div>
+    </article>`;
+}
+
+const sortedProjects = sortForDisplay(projects, "all");
+const projectCards = sortedProjects
+  .map((p) => buildDesktopProjectCard(p, sortedProjects, "all"))
+  .join("");
+
+const serviceCards = services.map((s) => `
+  <div class="glass-panel group h-full">
+    <div class="flex h-full flex-col p-8 md:p-10">
+      <p class="mb-6 text-right text-xs font-medium text-[#c41e3a]/80">${s.outcome}</p>
+      <h3 class="mb-3 text-xl font-semibold text-white md:text-2xl">${s.title}</h3>
+      <p class="flex-1 leading-relaxed text-[#a1a1aa]">${s.description}</p>
+    </div>
+  </div>`).join("");
+
+const howCards = engagementPaths.map((p, i) => `
+  <div class="glass-panel">
+    <div class="p-8 md:p-10">
+      <span class="mb-6 block text-sm font-medium text-[#c41e3a]/60">0${i + 1}</span>
+      <h3 class="mb-4 text-xl font-semibold text-white">${p.title}</h3>
+      <p class="leading-relaxed text-[#a1a1aa]">${p.description}</p>
+    </div>
+  </div>`).join("");
+
+const processCards = processSteps.map((s) => `
+  <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 transition-all duration-200 hover:border-[#c41e3a]/25 hover:shadow-[0_8px_32px_rgba(196,30,58,0.06)]">
+    <div class="flex items-start gap-4">
+      <span class="text-sm font-medium text-[#c41e3a]/60">${s.step}</span>
+      <div>
+        <h3 class="text-lg font-semibold text-white">${s.title}</h3>
+        <p class="mt-1 text-sm text-[#a1a1aa]">${s.description}</p>
+      </div>
+    </div>
+  </div>`).join("");
+
+const html = `<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dr Phil X | Custom AI Automation & Consulting</title>
+  <meta name="description" content="Dr Phil X builds custom AI automation that solves specific business bottlenecks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #050505;
+      color: #fafafa;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .ambient-glow {
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196, 30, 58, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 50%, rgba(196, 30, 58, 0.06), transparent);
+    }
+    .glass-panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(24px);
+      transition: all 0.3s ease;
+    }
+    .glass-panel:hover {
+      border-color: rgba(196, 30, 58, 0.25);
+      box-shadow: 0 8px 40px rgba(196, 30, 58, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    .btn-shimmer {
+      position: relative;
+      isolation: isolate;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      min-width: min-content;
+      border: none;
+      border-radius: 9999px;
+      cursor: pointer;
+      overflow: hidden;
+      background-size: 250%;
+      background-position: left;
+      transition: background-position 1s ease, transform 0.15s ease, box-shadow 0.3s ease;
+    }
+    .btn-shimmer::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 0;
+      width: calc(100% - 3px);
+      height: calc(100% - 3px);
+      border-radius: inherit;
+      transform: translate(-50%, -50%);
+      transition: background-position 1s ease;
+    }
+    .btn-shimmer > * { position: relative; z-index: 1; flex-shrink: 0; }
+    .btn-shimmer:hover { background-position: right; }
+    .btn-shimmer:hover::before { background-position: right; }
+    .btn-shimmer:active { transform: scale(0.95); }
+    .btn-shimmer:disabled { cursor: not-allowed; opacity: 0.5; }
+    .btn-shimmer:disabled:active { transform: none; }
+    .btn-shimmer--primary {
+      background-image: linear-gradient(to right, #7a1428, #e11d48, #7a1428, #7a1428, #e11d48, #7a1428);
+      color: white;
+    }
+    .btn-shimmer--primary::before { background-color: #c41e3a; }
+    .btn-shimmer--secondary {
+      background-image: linear-gradient(to right, rgba(255,255,255,0.14), rgba(196,30,58,0.55), rgba(255,255,255,0.08), rgba(255,255,255,0.08), rgba(196,30,58,0.55), rgba(255,255,255,0.14));
+      color: white;
+    }
+    .btn-shimmer--secondary::before { background-color: rgba(255, 255, 255, 0.05); }
+
+    .book-scroll-track { -ms-overflow-style: none; scrollbar-width: none; }
+    .book-scroll-track::-webkit-scrollbar { display: none; }
+    .book-page {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(145deg, #121212 0%, #080808 55%, #050505 100%);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+    .book-page-inner { padding: 1rem 1rem 1.15rem; }
+    .book-page-minor {
+      border-radius: 0.75rem;
+      border-color: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    }
+    .book-page-minor .book-page-inner { padding: 0.85rem 0.9rem 1rem; }
+    .book-page-meta {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.35);
+    }
+    .chapter-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(196, 30, 58, 0.45) 50%, transparent 100%);
+    }
+    #modal { display: none; }
+    #modal.open { display: flex; }
+    ::selection {
+      background: rgba(196, 30, 58, 0.35);
+      color: white;
+    }
+    .type-eyebrow {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .type-display {
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      line-height: 1.06;
+    }
+    .type-body {
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 65ch;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+  <p class="fixed bottom-3 left-3 z-[10000] rounded-full border border-white/10 bg-[#050505]/90 px-3 py-1.5 text-[10px] font-medium text-white/40 backdrop-blur-xl">PREVIEW: open via npm run dev for full site</p>
+
+  <div id="scroll-bg" class="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#050505]" aria-hidden="true">
+    <div id="bg-frame-wrap" class="absolute inset-0 opacity-0" style="transform:translateZ(0)">
+      <img id="bg-frame-a" alt="" decoding="sync" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-100" />
+      <img id="bg-frame-b" alt="" decoding="sync" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-0" />
+    </div>
+  </div>
+
+  <header class="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-5 md:px-6 md:pt-6">
+    <nav id="nav" class="flex w-full max-w-4xl items-center justify-between rounded-full border border-white/[0.06] bg-white/[0.03] px-6 py-3 backdrop-blur-xl transition-all duration-300">
+      <a href="#" class="text-sm font-semibold tracking-tight text-white transition-colors hover:text-[#c41e3a]">Dr Phil <span class="text-[#c41e3a]">X</span></a>
+      <div class="hidden items-center gap-8 md:flex">
+        <a href="#work" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Work</a>
+        <a href="#services" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Services</a>
+        <a href="#process" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Process</a>
+        <a href="#contact" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Contact</a>
+      </div>
+      <a href="#contact" class="btn-shimmer btn-shimmer--primary px-4 py-2 text-xs font-medium shadow-[0_4px_20px_rgba(196,30,58,0.25)] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)]"><span class="shrink-0">Get in Touch</span></a>
+    </nav>
+  </header>
+
+  <main class="relative z-10">
+    <!-- HERO: full-page 4K video, scroll scrubs assembly -->
+    <section id="hero" class="relative min-h-screen overflow-x-hidden bg-[#050505] md:overflow-hidden md:bg-transparent">
+      <div class="pointer-events-none absolute inset-x-0 top-0 z-0 h-[65dvh] md:inset-0 md:h-full">
+        <div class="absolute inset-0 overflow-hidden bg-[#050505] md:overflow-visible">
+          <div class="absolute left-1/2 top-0 h-full w-[112vw] -translate-x-1/2 md:inset-0 md:w-full md:translate-x-0">
+            <img id="hero-poster" class="absolute inset-0 h-full w-full object-cover object-[center_42%]" alt="" src="public/hero/hero-poster-2k.webp" />
+            <img id="hero-frame-a" class="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-100" alt="" decoding="sync" />
+            <img id="hero-frame-b" class="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-0" alt="" decoding="sync" />
+          </div>
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/25 via-transparent to-[#050505]/85"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,#050505_100%)] opacity-55"></div>
+      </div>
+      <audio id="hero-audio" class="hidden" preload="auto" src="public/hero/hero-audio.m4a"></audio>
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 top-[54dvh] z-[1] md:hidden" aria-hidden="true">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,#050505_72%)]"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/55 via-[#050505]/94 to-[#050505]"></div>
+      </div>
+      <div class="relative z-10 flex min-h-screen flex-col px-4 pb-10 md:block md:px-0 md:pb-0">
+        <p id="hero-hint" class="pointer-events-none absolute left-4 right-4 top-[58dvh] text-center text-[10px] font-medium tracking-[0.3em] text-white/40 uppercase transition-none md:inset-x-10 md:top-[54vh]">Scroll to assemble</p>
+        <div id="hero-copy" class="mx-auto mt-[60dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl">
+          <h1 data-hero-copy class="type-display mx-auto max-w-3xl will-change-[opacity,transform] text-[clamp(1.65rem,5vw,3.5rem)] leading-[1.12] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] md:max-w-4xl">
+            Custom AI Solutions<br />
+            <span class="text-[#c41e3a]">Automation for</span><br />
+            <span class="text-[#c41e3a]">real productivity.</span>
+          </h1>
+          <p data-hero-copy class="type-body mx-auto mt-4 max-w-[42ch] will-change-[opacity,transform] text-sm leading-relaxed text-white/70 drop-shadow-[0_2px_16px_rgba(0,0,0,0.85)] md:mt-5 md:text-base md:text-white/60 md:drop-shadow-none">Suit your exact personal or business needs.</p>
+          <div id="hero-actions" class="mt-5 flex flex-col items-center justify-center gap-4 transition-all duration-500 sm:mt-7 sm:flex-row" style="opacity:0;transform:translateY(12px)">
+            <a href="#work" class="btn-shimmer btn-shimmer--primary group gap-3 px-6 py-3 text-sm font-medium shadow-[0_4px_24px_rgba(196,30,58,0.25)] hover:shadow-[0_4px_32px_rgba(196,30,58,0.35)]"><span class="shrink-0">See My Work</span> <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span></a>
+            <a href="#contact" class="btn-shimmer btn-shimmer--secondary group gap-3 px-6 py-3 text-sm font-medium"><span class="shrink-0">Tell Me Your Problem</span> <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section id="work" class="relative px-6 py-24 md:px-10 md:py-48 lg:py-52">
+      <div class="relative mx-auto max-w-7xl">
+        <div class="md:hidden">
+          <p class="type-eyebrow text-[#c41e3a]/90">Proof of Work</p>
+          <h2 class="type-display mt-5 text-3xl text-white">Systems I've built</h2>
+          <p class="type-body mt-4 text-[#a1a1aa]">Real projects solving real bottlenecks, in my own businesses first.</p>
+          <div class="mt-10" id="mobile-work-chapters">${mobileWorkChapters}</div>
+        </div>
+        <div class="relative hidden md:block">
+          <div class="pointer-events-none absolute -right-20 top-1/4 h-[420px] w-[420px] rounded-full bg-[#c41e3a]/8 blur-[120px]" aria-hidden="true"></div>
+          <div class="grid grid-cols-12 gap-x-10 lg:gap-x-14">
+            <aside class="col-span-4 self-start xl:col-span-3">
+              <p class="type-eyebrow text-[#c41e3a]/90">Proof of Work</p>
+              <h2 class="type-display mt-5 max-w-[16ch] text-4xl text-white lg:text-5xl xl:text-[3.25rem]">Systems I've built</h2>
+              <p class="type-body mt-6 text-[#a1a1aa]">Real projects solving real bottlenecks, in my own businesses first.</p>
+            </aside>
+            <div class="col-span-8 xl:col-span-9">
+              <div class="grid auto-rows-[minmax(240px,auto)] grid-flow-dense grid-cols-12 gap-4 lg:gap-5" id="project-grid">${projectCards}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="px-6 py-36 md:px-10 md:py-52">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-16 max-w-3xl md:mb-20">
+          <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">What I Solve</p>
+          <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">AI that targets your specific business bottlenecks</h2>
+          <p class="mt-6 text-lg leading-relaxed text-[#a1a1aa]">Every engagement starts with your problem, then I design automation that adds real, measurable value to your operations.</p>
+        </div>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">${serviceCards}</div>
+      </div>
+    </section>
+
+    <!-- HOW I HELP -->
+    <section id="how" class="px-6 py-28 md:px-10 md:py-40">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-16 max-w-3xl">
+          <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">How I Help</p>
+          <h2 class="text-3xl font-semibold tracking-tight text-white md:text-4xl">Three ways to work together</h2>
+        </div>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-3">${howCards}</div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="px-6 py-28 md:px-10 md:py-40">
+      <div class="mx-auto max-w-7xl">
+        <div class="glass-panel">
+          <div class="grid grid-cols-1 items-center gap-10 p-10 md:grid-cols-2 md:p-14">
+            <div>
+              <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">About</p>
+              <h2 class="text-3xl font-semibold text-white md:text-4xl">Dr Phil X</h2>
+            </div>
+            <div class="space-y-4 text-lg leading-relaxed text-[#a1a1aa]">
+              <p>I'm a business owner building AI automation for businesses, including my own. I'm already financially independent, so this work is passion driven: real systems I run every day, not templates or theory.</p>
+              <p>I work with select businesses that want the same edge: custom solutions, not templates. Implementation, consulting, or coaching, whatever gets you from problem to working system fastest.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section id="process" class="px-6 py-28 md:px-10 md:py-40">
+      <div class="mx-auto grid max-w-7xl grid-cols-1 gap-12 md:grid-cols-2">
+        <div>
+          <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">Process</p>
+          <h2 class="text-3xl font-semibold tracking-tight text-white md:text-4xl">From bottleneck to working system</h2>
+          <p class="mt-6 text-lg leading-relaxed text-[#a1a1aa]">A structured path from understanding your problem to a deployed, maintainable AI solution.</p>
+        </div>
+        <div class="flex flex-col gap-3">${processCards}</div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="px-6 py-28 md:px-10 md:py-40">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">Contact</p>
+        <h2 class="text-3xl font-semibold tracking-tight text-white md:text-4xl">What bottleneck are you trying to solve?</h2>
+        <p class="mt-6 text-lg text-[#a1a1aa]">Email me at <a href="mailto:philxue814@gmail.com" class="text-white/70 transition-colors hover:text-[#c41e3a]">philxue814@gmail.com</a></p>
+      </div>
+      <div class="mx-auto mt-12 max-w-xl">
+        <div class="glass-panel">
+          <form id="contact-form" class="space-y-5 p-8 md:p-10">
+            <div>
+              <label class="mb-2 block text-sm text-[#a1a1aa]" for="name">Name</label>
+              <input id="name" name="name" required class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition-all duration-200 placeholder:text-white/25 focus:border-[#c41e3a]/40 focus:ring-1 focus:ring-[#c41e3a]/20" placeholder="Your name" />
+            </div>
+            <div>
+              <label class="mb-2 block text-sm text-[#a1a1aa]" for="email">Email</label>
+              <input id="email" name="email" type="email" required class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition-all duration-200 placeholder:text-white/25 focus:border-[#c41e3a]/40 focus:ring-1 focus:ring-[#c41e3a]/20" placeholder="you@company.com" />
+            </div>
+            <div>
+              <label class="mb-2 block text-sm text-[#a1a1aa]" for="message">What are you trying to solve?</label>
+              <textarea id="message" name="message" required rows="5" class="w-full resize-none rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition-all duration-200 placeholder:text-white/25 focus:border-[#c41e3a]/40 focus:ring-1 focus:ring-[#c41e3a]/20" placeholder="Describe your bottleneck..."></textarea>
+            </div>
+            <button type="submit" class="btn-shimmer btn-shimmer--primary w-full py-3.5 text-sm font-medium shadow-[0_4px_24px_rgba(196,30,58,0.25)] hover:shadow-[0_4px_24px_rgba(196,30,58,0.35)]"><span class="shrink-0">Start a Conversation</span></button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-white/[0.06] px-6 py-12">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
+      <div class="text-center md:text-left">
+        <p class="font-semibold tracking-tight text-white">Dr Phil <span class="text-[#c41e3a]">X</span></p>
+        <p class="mt-1 text-sm text-[#a1a1aa]">Custom AI automation for business bottlenecks</p>
+      </div>
+      <p class="text-xs text-white/25">© ${new Date().getFullYear()} DrPhilX.com</p>
+    </div>
+  </footer>
+
+  <!-- PROJECT MODAL -->
+  <div id="modal" class="fixed inset-0 z-[200] items-center justify-center bg-black/70 p-6 backdrop-blur-md">
+    <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.5)] md:p-10">
+      <button id="modal-close" class="absolute top-5 right-5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/50 transition-all hover:border-[#c41e3a]/30 hover:text-[#c41e3a]">✕</button>
+      <p id="modal-cat" class="mb-2 text-xs font-medium tracking-wide text-[#c41e3a]"></p>
+      <h3 id="modal-title" class="mb-6 text-2xl font-semibold text-white"></h3>
+      <div class="space-y-6">
+        <div><p class="mb-1 text-xs font-medium tracking-wide text-[#c41e3a]">Bottleneck</p><p id="modal-bottleneck" class="text-[#a1a1aa]"></p></div>
+        <div><p class="mb-1 text-xs font-medium tracking-wide text-[#c41e3a]">Solution</p><p id="modal-solution" class="text-[#a1a1aa]"></p></div>
+        <div><p class="mb-1 text-xs font-medium tracking-wide text-[#c41e3a]">Outcome</p><p id="modal-outcome" class="text-[#a1a1aa]"></p></div>
+      </div>
+      <div class="mt-6 hidden flex-wrap gap-3" id="modal-links-wrap"><div id="modal-links" class="flex flex-wrap gap-3"></div></div>
+      <a href="#contact" id="modal-cta" class="mt-8 inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#c41e3a] px-6 py-3 text-sm font-medium text-white transition-all hover:bg-[#e11d48] hover:shadow-[0_4px_24px_rgba(196,30,58,0.3)]">Have a similar bottleneck? ↗</a>
+    </div>
+  </div>
+
+  <script>
+    const PROJECTS = ${JSON.stringify(projects)};
+
+    document.querySelectorAll('[data-chapter-scroll]').forEach(function(track) {
+      const dotsWrap = track.parentElement.querySelector('[data-chapter-dots]');
+      const pages = track.querySelectorAll('[data-chapter-page]');
+      if (!dotsWrap || !pages.length) return;
+      dotsWrap.innerHTML = Array.from(pages).map(function(_, i) {
+        return '<span class="chapter-dot h-1 w-1.5 rounded-full bg-white/20 transition-all duration-300' + (i === 0 ? ' active' : '') + '" data-dot="' + i + '"></span>';
+      }).join('');
+      const dots = dotsWrap.querySelectorAll('.chapter-dot');
+      function updateDots() {
+        const index = Math.min(Math.max(Math.round(track.scrollLeft / track.clientWidth), 0), pages.length - 1);
+        dots.forEach(function(dot, i) {
+          dot.classList.toggle('active', i === index);
+          dot.style.width = i === index ? '1.25rem' : '0.375rem';
+          dot.style.background = i === index ? '#c41e3a' : 'rgba(255,255,255,0.2)';
+        });
+      }
+      track.addEventListener('scroll', updateDots, { passive: true });
+      updateDots();
+    });
+
+    const modal = document.getElementById('modal');
+    document.querySelectorAll('.project-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const p = PROJECTS.find(item => item.slug === card.dataset.slug);
+        if (!p) return;
+        document.getElementById('modal-cat').textContent = p.catLabel;
+        document.getElementById('modal-title').textContent = p.title;
+        document.getElementById('modal-bottleneck').textContent = p.bottleneck;
+        document.getElementById('modal-solution').textContent = p.solution;
+        document.getElementById('modal-outcome').textContent = p.outcome;
+        const linksEl = document.getElementById('modal-links');
+        if (linksEl) {
+          linksEl.innerHTML = (p.links || []).map(function(link) {
+            return '<a href="' + link.href + '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:border-[#c41e3a]/40 hover:text-[#c41e3a]">' + link.label + ' ↗</a>';
+          }).join('');
+          const wrap = document.getElementById('modal-links-wrap');
+          if (wrap) wrap.style.display = p.links && p.links.length ? 'flex' : 'none';
+        }
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+    document.getElementById('modal-close').addEventListener('click', () => {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+    modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('open'); document.body.style.overflow = ''; } });
+    document.getElementById('modal-cta').addEventListener('click', () => { modal.classList.remove('open'); document.body.style.overflow = ''; });
+
+    document.getElementById('contact-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message').value;
+      const subject = encodeURIComponent('[DrPhilX.com] Inquiry from ' + name);
+      const body = encodeURIComponent('Name: ' + name + '\\nEmail: ' + email + '\\n\\nMessage:\\n' + message);
+      window.location.href = 'mailto:philxue814@gmail.com?subject=' + subject + '&body=' + body;
+    });
+
+    const HERO_FRAME_COUNT = 145;
+    let heroProgress = 0;
+    let heroComplete = false;
+    let heroShowActions = false;
+    let heroTouchY = 0;
+    let heroDisplayedFrame = -1;
+    let heroActiveBuffer = 0;
+    let heroRaf = null;
+    const heroFrameCache = [];
+    const heroReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function heroFrameSrc(index) {
+      return 'public/hero/frames/frame_' + String(index + 1).padStart(4, '0') + '.jpg';
+    }
+
+    function swapHeroFrame(frameIndex) {
+      if (frameIndex === heroDisplayedFrame) return;
+      const cached = heroFrameCache[frameIndex];
+      const frameA = document.getElementById('hero-frame-a');
+      const frameB = document.getElementById('hero-frame-b');
+      const inactive = heroActiveBuffer === 0 ? frameB : frameA;
+      const active = heroActiveBuffer === 0 ? frameA : frameB;
+      if (!cached || !inactive || !active) return;
+
+      function commit() {
+        if (!cached.naturalWidth) return;
+        inactive.src = cached.src;
+        inactive.style.opacity = '1';
+        active.style.opacity = '0';
+        heroActiveBuffer = heroActiveBuffer === 0 ? 1 : 0;
+        heroDisplayedFrame = frameIndex;
+      }
+
+      if (cached.complete) commit();
+      else cached.addEventListener('load', commit, { once: true });
+    }
+
+    const HERO_COPY_FADE_END = 0.5;
+    const HERO_COPY_CHUNK_BASE_START = 0.16;
+    const HERO_COPY_CHUNK_STAGGER = 0.08;
+    const HERO_COPY_CHUNK_SPAN = 0.18;
+
+    function heroCopyFade(progress, fadeStart, fadeEnd) {
+      const span = Math.max(fadeEnd - fadeStart, 0.001);
+      const t = Math.max(0, Math.min(1, (progress - fadeStart) / span));
+      return t * t * (3 - 2 * t);
+    }
+
+    function heroCopyChunkRange(index) {
+      const start = HERO_COPY_CHUNK_BASE_START + index * HERO_COPY_CHUNK_STAGGER;
+      return { start: start, end: Math.min(start + HERO_COPY_CHUNK_SPAN, HERO_COPY_FADE_END) };
+    }
+
+    function applyHeroCopyChunkFade(el, progress, index) {
+      const range = heroCopyChunkRange(index);
+      const fade = heroCopyFade(progress, range.start, range.end);
+      const lift = 20 - index * 2;
+      el.style.opacity = String(fade);
+      el.style.transform = 'translate3d(0,' + (lift * (1 - fade)) + 'px,0)';
+    }
+
+    function syncHeroAudio() {
+      const audio = document.getElementById('hero-audio');
+      if (!audio || heroReduced) return;
+      if (heroProgress <= 0) {
+        audio.pause();
+        if (audio.currentTime > 0) audio.currentTime = 0;
+        return;
+      }
+      if (!audio.duration || !isFinite(audio.duration)) return;
+      const targetTime = Math.min(heroProgress * audio.duration, audio.duration - 0.01);
+      if (Math.abs(audio.currentTime - targetTime) > 0.04) audio.currentTime = targetTime;
+      if (audio.paused) audio.play().catch(function() {});
+    }
+
+    function applyHeroScrub() {
+      const hint = document.getElementById('hero-hint');
+      const copy = document.getElementById('hero-copy');
+      const actions = document.getElementById('hero-actions');
+      const frameIndex = Math.round(heroProgress * (HERO_FRAME_COUNT - 1));
+      swapHeroFrame(frameIndex);
+      syncHeroAudio();
+      if (hint) {
+        const hintOpacity = Math.max(0, 1 - heroProgress * 1.2);
+        hint.style.opacity = String(hintOpacity);
+        hint.style.visibility = heroProgress < 0.92 && hintOpacity > 0.01 ? 'visible' : 'hidden';
+      }
+      if (copy) {
+        copy.querySelectorAll('[data-hero-copy]').forEach(function(el, index) {
+          applyHeroCopyChunkFade(el, heroProgress, index);
+        });
+      }
+      if (actions) {
+        actions.style.opacity = heroShowActions ? '1' : '0';
+        actions.style.transform = heroShowActions ? 'translateY(0)' : 'translateY(12px)';
+      }
+    }
+
+    function scheduleHeroScrub() {
+      if (heroRaf !== null) return;
+      heroRaf = requestAnimationFrame(function() {
+        heroRaf = null;
+        applyHeroScrub();
+      });
+    }
+
+    function setHeroProgress(next) {
+      heroProgress = next;
+      scheduleHeroScrub();
+      if (next >= 1) {
+        heroComplete = true;
+        heroShowActions = true;
+      } else if (next < 0.75) {
+        heroShowActions = false;
+      }
+    }
+
+    for (let i = 0; i < HERO_FRAME_COUNT; i++) {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = heroFrameSrc(i);
+      heroFrameCache[i] = img;
+    }
+    const frameA = document.getElementById('hero-frame-a');
+    if (frameA && heroFrameCache[0]) {
+      const prime = function() {
+        if (heroFrameCache[0].complete) {
+          frameA.src = heroFrameCache[0].src;
+          heroDisplayedFrame = 0;
+        }
+      };
+      if (heroFrameCache[0].complete) prime();
+      else heroFrameCache[0].addEventListener('load', prime, { once: true });
+    }
+
+    if (heroReduced) {
+      heroProgress = 1;
+      heroComplete = true;
+      heroShowActions = true;
+      applyHeroScrub();
+    }
+
+    if (!heroReduced) {
+      window.addEventListener('wheel', function(e) {
+        if (heroComplete && e.deltaY < 0 && window.scrollY <= 5) {
+          heroComplete = false;
+          e.preventDefault();
+        } else if (!heroComplete) {
+          e.preventDefault();
+          setHeroProgress(Math.min(Math.max(heroProgress + e.deltaY * 0.0003, 0), 1));
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchstart', function(e) {
+        heroTouchY = e.touches[0].clientY;
+      }, { passive: false });
+
+      window.addEventListener('touchmove', function(e) {
+        if (!heroTouchY) return;
+        const y = e.touches[0].clientY;
+        const delta = heroTouchY - y;
+        if (heroComplete && delta < -20 && window.scrollY <= 5) {
+          heroComplete = false;
+          e.preventDefault();
+        } else if (!heroComplete) {
+          e.preventDefault();
+          const factor = delta < 0 ? 0.008 / 3 : 0.005 / 3;
+          setHeroProgress(Math.min(Math.max(heroProgress + delta * factor, 0), 1));
+          heroTouchY = y;
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', function() { heroTouchY = 0; });
+
+      window.addEventListener('scroll', function() {
+        if (!heroComplete) window.scrollTo(0, 0);
+      });
+    }
+
+    applyHeroScrub();
+
+    const BG_FRAME_COUNT = 145;
+    const BG_LOOP_COUNT = 5;
+    const BG_OPACITY_MIN = 0.3;
+    const BG_OPACITY_MAX = 0.75;
+    const bgFrameWrap = document.getElementById('bg-frame-wrap');
+    const bgFrameA = document.getElementById('bg-frame-a');
+    const bgFrameB = document.getElementById('bg-frame-b');
+    let bgTargetVirtual = 0;
+    let bgCurrentVirtual = 0;
+    let bgTargetOpacity = 0;
+    let bgDisplayOpacity = 0;
+    let bgSmoothedProgress = 0;
+    let bgDisplayedFrame = -1;
+    let bgActiveBuffer = 0;
+    let bgFramesReady = false;
+    let bgSwapPending = false;
+    const bgFrameCache = [];
+
+    function bgFrameSrc(index) {
+      return 'public/backscroll/frames/frame_' + String(index + 1).padStart(4, '0') + '.jpg';
+    }
+
+    function getHeroEnd() {
+      const hero = document.getElementById('hero');
+      return hero ? hero.offsetTop + hero.offsetHeight : window.innerHeight;
+    }
+
+    function smoothstep(t) {
+      return t * t * (3 - 2 * t);
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function waitBgImage(img) {
+      if (img.complete && img.naturalWidth > 0) {
+        return img.decode ? img.decode().catch(function() {}) : Promise.resolve();
+      }
+      return new Promise(function(resolve) {
+        function done() {
+          img.removeEventListener('load', done);
+          img.removeEventListener('error', done);
+          var decoded = img.decode ? img.decode().catch(function() {}) : Promise.resolve();
+          decoded.then(resolve);
+        }
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+      });
+    }
+
+    function swapBgFrame(frameIndex) {
+      if (frameIndex === bgDisplayedFrame || bgSwapPending || !bgFramesReady || !bgFrameA || !bgFrameB) return;
+      const cached = bgFrameCache[frameIndex];
+      const inactive = bgActiveBuffer === 0 ? bgFrameB : bgFrameA;
+      const active = bgActiveBuffer === 0 ? bgFrameA : bgFrameB;
+      if (!cached || !cached.complete || cached.naturalWidth === 0) return;
+
+      bgSwapPending = true;
+      inactive.src = cached.src;
+      waitBgImage(inactive).then(function() {
+        bgSwapPending = false;
+        if (inactive.naturalWidth === 0) return;
+        inactive.style.opacity = '1';
+        active.style.opacity = '0';
+        bgActiveBuffer = bgActiveBuffer === 0 ? 1 : 0;
+        bgDisplayedFrame = frameIndex;
+      });
+    }
+
+    for (let i = 0; i < BG_FRAME_COUNT; i++) {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = bgFrameSrc(i);
+      bgFrameCache[i] = img;
+    }
+
+    function preloadBgFrames() {
+      const batchSize = 12;
+      let index = 0;
+      function nextBatch() {
+        if (index >= BG_FRAME_COUNT) {
+          bgFramesReady = true;
+          return;
+        }
+        const batch = bgFrameCache.slice(index, index + batchSize);
+        index += batchSize;
+        Promise.all(batch.map(waitBgImage)).then(nextBatch);
+      }
+      nextBatch();
+    }
+
+    if (bgFrameCache[0] && bgFrameA) {
+      waitBgImage(bgFrameCache[0]).then(function() {
+        bgFrameA.src = bgFrameCache[0].src;
+        return waitBgImage(bgFrameA);
+      }).then(function() {
+        bgDisplayedFrame = 0;
+        preloadBgFrames();
+      });
+    } else {
+      preloadBgFrames();
+    }
+
+    function tickBackgroundFrames() {
+      bgCurrentVirtual = lerp(bgCurrentVirtual, bgTargetVirtual, 0.14);
+      bgDisplayOpacity = lerp(bgDisplayOpacity, bgTargetOpacity, 0.1);
+      const frameIndex = Math.round(bgCurrentVirtual) % BG_FRAME_COUNT;
+      swapBgFrame(frameIndex);
+      if (bgFrameWrap) bgFrameWrap.style.opacity = String(bgDisplayOpacity);
+      requestAnimationFrame(tickBackgroundFrames);
+    }
+    requestAnimationFrame(tickBackgroundFrames);
+
+    function onScroll() {
+      const nav = document.getElementById('nav');
+      if (window.scrollY > 40) {
+        nav.classList.add('border-white/10', 'bg-[#050505]/85', 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]', 'backdrop-blur-2xl');
+        nav.classList.remove('border-white/[0.06]', 'bg-white/[0.03]');
+      } else {
+        nav.classList.remove('border-white/10', 'bg-[#050505]/85', 'shadow-[0_8px_32px_rgba(0,0,0,0.4)]', 'backdrop-blur-2xl');
+        nav.classList.add('border-white/[0.06]', 'bg-white/[0.03]');
+      }
+
+      const heroEnd = getHeroEnd();
+      const max = Math.max(document.documentElement.scrollHeight - window.innerHeight - heroEnd, 1);
+      const raw = window.scrollY <= heroEnd ? 0 : Math.min(1, (window.scrollY - heroEnd) / max);
+      bgSmoothedProgress = lerp(bgSmoothedProgress, raw, 0.04);
+      const eased = smoothstep(bgSmoothedProgress);
+      bgTargetVirtual = eased * BG_LOOP_COUNT * (BG_FRAME_COUNT - 1);
+      bgTargetOpacity = window.scrollY <= heroEnd ? 0 : BG_OPACITY_MIN + eased * (BG_OPACITY_MAX - BG_OPACITY_MIN);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  </script>
+</body>
+</html>`;
+
+writeFileSync(join(root, "index.html"), html, "utf8");
+console.log("Generated index.html at", join(root, "index.html"));
