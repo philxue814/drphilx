@@ -51,7 +51,10 @@ const projects = [
     ],
     links: [
       { label: "Instagram @guildfordeyeclinic", href: "https://www.instagram.com/guildfordeyeclinic/" },
-      { label: "Facebook @guildfordeyeclinic", href: "https://www.facebook.com/guildfordeyeclinic/" },
+      {
+        label: "Facebook @guildfordeyeclinic",
+        href: "https://www.facebook.com/people/Guildford-Eye-Clinic/61589361077307/",
+      },
     ],
   },
   {
@@ -689,34 +692,34 @@ const html = `<!DOCTYPE html>
   <main class="relative z-10">
     <!-- HERO: full-page 4K video, scroll scrubs assembly -->
     <section id="hero" class="relative min-h-screen overflow-x-hidden bg-[#050505] md:overflow-hidden md:bg-transparent">
-      <div class="pointer-events-none absolute inset-x-0 top-0 z-0 h-[65dvh] md:inset-0 md:h-full">
+      <div class="pointer-events-none absolute inset-x-0 z-0 max-md:top-11 max-md:h-[72dvh] md:inset-0 md:top-0 md:h-full">
         <div class="absolute inset-0 overflow-hidden bg-[#050505] md:overflow-visible">
           <div class="absolute left-1/2 top-0 h-full w-[112vw] -translate-x-1/2 md:inset-0 md:w-full md:translate-x-0">
-            <img id="hero-poster" class="absolute inset-0 h-full w-full object-cover object-[center_42%]" alt="" src="public/hero/hero-poster-2k.webp" />
-            <img id="hero-frame-a" class="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-100" alt="" decoding="sync" />
-            <img id="hero-frame-b" class="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-0" alt="" decoding="sync" />
+            <img id="hero-poster" class="absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%]" alt="" src="public/hero/hero-poster-2k.webp" />
+            <img id="hero-frame-a" class="absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%] opacity-100" alt="" decoding="sync" />
+            <img id="hero-frame-b" class="absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%] opacity-0" alt="" decoding="sync" />
           </div>
         </div>
         <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/25 via-transparent to-[#050505]/85"></div>
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,#050505_100%)] opacity-55"></div>
       </div>
       <audio id="hero-audio" class="hidden" preload="auto" src="public/hero/hero-audio.m4a"></audio>
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 top-[54dvh] z-[1] md:hidden" aria-hidden="true">
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 top-[62dvh] z-[1] md:hidden" aria-hidden="true">
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,#050505_72%)]"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/55 via-[#050505]/94 to-[#050505]"></div>
       </div>
       <div class="relative z-10 flex min-h-screen flex-col px-4 pb-10 md:block md:px-0 md:pb-0">
-        <p id="hero-hint" class="pointer-events-none absolute left-4 right-4 top-[58dvh] text-center text-[10px] font-medium tracking-[0.3em] text-white/40 uppercase transition-none md:inset-x-10 md:top-[54vh]">Scroll to assemble</p>
-        <div id="hero-copy" class="mx-auto mt-[60dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl">
+        <p id="hero-hint" class="pointer-events-none absolute left-4 right-4 top-[64dvh] text-center text-[10px] font-medium tracking-[0.3em] text-white/40 uppercase transition-none md:inset-x-10 md:top-[54vh]">Scroll to assemble</p>
+        <div id="hero-copy" class="mx-auto mt-[68dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl">
           <h1 data-hero-copy class="type-display mx-auto max-w-3xl will-change-[opacity,transform] text-[clamp(1.65rem,5vw,3.5rem)] leading-[1.12] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] md:max-w-4xl">
             Custom AI Solutions<br />
             <span class="text-[#c41e3a]">Automation for</span><br />
             <span class="text-[#c41e3a]">real productivity.</span>
           </h1>
           <p data-hero-copy class="type-body mx-auto mt-4 max-w-[42ch] will-change-[opacity,transform] text-sm leading-relaxed text-white/70 drop-shadow-[0_2px_16px_rgba(0,0,0,0.85)] md:mt-5 md:text-base md:text-white/60 md:drop-shadow-none">Suit your exact personal or business needs.</p>
-          <div id="hero-actions" class="mt-5 flex flex-col items-center justify-center gap-4 transition-all duration-500 sm:mt-7 sm:flex-row" style="opacity:0;transform:translateY(12px)">
-            <a href="#work" class="btn-shimmer btn-shimmer--primary group gap-3 px-6 py-3 text-sm font-medium shadow-[0_4px_24px_rgba(196,30,58,0.25)] hover:shadow-[0_4px_32px_rgba(196,30,58,0.35)]"><span class="shrink-0">See My Work</span> <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span></a>
-            <a href="#contact" class="btn-shimmer btn-shimmer--secondary group gap-3 px-6 py-3 text-sm font-medium"><span class="shrink-0">Tell Me Your Problem</span> <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">↗</span></a>
+          <div id="hero-actions" class="mt-3 flex flex-col items-center justify-center gap-2.5 transition-all duration-500 sm:mt-7 sm:flex-row sm:gap-4 md:mt-5" style="opacity:0;transform:translateY(12px)">
+            <a href="#work" class="btn-shimmer btn-shimmer--primary group gap-2 px-4 py-2 text-xs font-medium shadow-[0_4px_24px_rgba(196,30,58,0.25)] hover:shadow-[0_4px_32px_rgba(196,30,58,0.35)] md:gap-3 md:px-6 md:py-3 md:text-sm"><span class="shrink-0">See My Work</span> <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 md:h-8 md:w-8">↗</span></a>
+            <a href="#contact" class="btn-shimmer btn-shimmer--secondary group gap-2 px-4 py-2 text-xs font-medium md:gap-3 md:px-6 md:py-3 md:text-sm"><span class="shrink-0">Tell Me Your Problem</span> <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 md:h-8 md:w-8">↗</span></a>
           </div>
         </div>
       </div>

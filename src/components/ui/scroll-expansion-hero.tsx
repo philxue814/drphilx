@@ -480,7 +480,7 @@ export function ScrollExpandMedia({
   }, [useFrameScrub, mediaSrc]);
 
   const heroMediaClass =
-    "absolute inset-0 h-full w-full object-cover object-[center_42%]";
+    "absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%]";
 
   return (
     <section
@@ -490,7 +490,7 @@ export function ScrollExpandMedia({
       {useScrollAudio && (
         <audio ref={audioRef} src={audioSrc} preload="auto" className="hidden" />
       )}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[65dvh] md:inset-0 md:h-full">
+      <div className="pointer-events-none absolute inset-x-0 z-0 max-md:top-11 max-md:h-[72dvh] md:inset-0 md:top-0 md:h-full">
         <div className="absolute inset-0 overflow-hidden bg-[#050505] md:overflow-visible">
           <div className="absolute left-1/2 top-0 h-full w-[112vw] -translate-x-1/2 md:inset-0 md:w-full md:translate-x-0">
             {mediaType === "video" ? (
@@ -547,7 +547,7 @@ export function ScrollExpandMedia({
 
       {/* Mobile: block parallax streams behind hero copy */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-[54dvh] z-[1] md:hidden"
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-[62dvh] z-[1] md:hidden"
         aria-hidden
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,#050505_72%)]" />
@@ -558,7 +558,7 @@ export function ScrollExpandMedia({
         {scrollToExpand && !reducedMotion && (
           <p
             ref={hintRef}
-            className="type-eyebrow pointer-events-none absolute left-4 right-4 top-[58dvh] text-center text-white/35 md:inset-x-10 md:top-[54vh]"
+            className="type-eyebrow pointer-events-none absolute left-4 right-4 top-[64dvh] text-center text-white/35 md:inset-x-10 md:top-[54vh]"
           >
             {scrollToExpand}
           </p>
@@ -566,12 +566,12 @@ export function ScrollExpandMedia({
 
         <div
           ref={copyRef}
-          className="mx-auto mt-[60dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl"
+          className="mx-auto mt-[68dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl"
         >
           {children}
           {actions && (
             <motion.div
-              className="mt-5 flex flex-col items-center justify-center gap-4 sm:mt-7 sm:flex-row"
+              className="mt-3 flex flex-col items-center justify-center gap-2.5 sm:mt-7 sm:flex-row sm:gap-4 md:mt-5"
               initial={{ opacity: 0, y: 12 }}
               animate={{
                 opacity: showContent ? 1 : 0,

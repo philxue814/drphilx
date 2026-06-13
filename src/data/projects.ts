@@ -190,7 +190,7 @@ export const projects: Project[] = [
       },
       {
         label: "Facebook @guildfordeyeclinic",
-        href: "https://www.facebook.com/guildfordeyeclinic/",
+        href: "https://www.facebook.com/people/Guildford-Eye-Clinic/61589361077307/",
       },
     ],
     tags: ["Automation", "Content", "Social"],
