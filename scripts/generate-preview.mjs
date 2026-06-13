@@ -320,6 +320,18 @@ const particlesHtml = Array.from({ length: 36 }, (_, i) => {
 }).join("");
 
 const mobileChapterOrder = ["web", "marketing", "publishing", "healthcare", "fintech", "media"];
+const mobileCategoryOrder = {
+  marketing: ["social-automation", "ai-seo"],
+};
+
+function sortProjectsForMobileChapter(items, category) {
+  const order = mobileCategoryOrder[category];
+  if (!order) return items;
+  return [...items].sort(
+    (a, b) => order.indexOf(a.slug) - order.indexOf(b.slug)
+  );
+}
+
 const mobileChapterLabels = {
   web: "Web Design",
   marketing: "Marketing",
@@ -355,7 +367,10 @@ function buildProjectPanel(p, minor = false) {
 }
 
 function buildMobileChapterPages(category, chapterIndex) {
-  const items = projects.filter((p) => p.category === category);
+  const items = sortProjectsForMobileChapter(
+    projects.filter((p) => p.category === category),
+    category
+  );
   const multi = items.length > 1;
   const minor = getTier(items[0]) === "minor";
   const panels = items.map((p) => buildProjectPanel(p, minor)).join("");

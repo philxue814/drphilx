@@ -102,6 +102,22 @@ export const mobileChapterOrder: ProjectCategory[] = [
   "media",
 ];
 
+/** Mobile carousel panel order within a chapter (when it differs from `projects` array order) */
+export const mobileCategoryOrder: Partial<Record<ProjectCategory, string[]>> = {
+  marketing: ["social-automation", "ai-seo"],
+};
+
+export function sortProjectsForMobileChapter(
+  items: Project[],
+  category: ProjectCategory
+): Project[] {
+  const order = mobileCategoryOrder[category];
+  if (!order) return items;
+  return [...items].sort(
+    (a, b) => order.indexOf(a.slug) - order.indexOf(b.slug)
+  );
+}
+
 export const mobileChapterLabels: Record<ProjectCategory, string> = {
   web: "Web Design",
   marketing: "Marketing",

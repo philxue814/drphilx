@@ -9,6 +9,7 @@ import {
   mobileChapterOrder,
   mobileChapterLabels,
   categoryTier,
+  sortProjectsForMobileChapter,
   type Project,
   type ProjectCategory,
 } from "@/data/projects";
@@ -20,7 +21,10 @@ import {
 } from "@/lib/project-media";
 
 function chapterProjects(category: ProjectCategory): Project[] {
-  return projects.filter((p) => p.category === category);
+  return sortProjectsForMobileChapter(
+    projects.filter((p) => p.category === category),
+    category
+  );
 }
 
 function ProjectPanel({
