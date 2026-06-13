@@ -684,7 +684,7 @@ const html = `<!DOCTYPE html>
 <body class="overflow-x-hidden">
   <p class="fixed bottom-3 left-3 z-[10000] rounded-full border border-white/10 bg-[#050505]/90 px-3 py-1.5 text-[10px] font-medium text-white/40 backdrop-blur-xl">PREVIEW: open via npm run dev for full site</p>
 
-  <div id="scroll-bg" class="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#050505]" aria-hidden="true">
+  <div id="scroll-bg" class="pointer-events-none fixed inset-0 z-0 h-[100dvh] w-full overflow-hidden bg-[#050505]" aria-hidden="true">
     <div id="bg-frame-wrap" class="absolute inset-0 opacity-0" style="transform:translateZ(0)">
       <img id="bg-frame-a" alt="" decoding="sync" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-100" />
       <img id="bg-frame-b" alt="" decoding="sync" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-0" />
@@ -1133,15 +1133,38 @@ const html = `<!DOCTYPE html>
       });
     }
 
+    function setHeroScrollLocked(locked) {
+      document.documentElement.dataset.heroLocked = locked ? 'true' : 'false';
+      if (locked) {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.body.style.overscrollBehavior = 'none';
+      } else {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+        document.body.style.overscrollBehavior = '';
+      }
+    }
+
+    function syncHeroScrollLock() {
+      if (heroReduced) {
+        setHeroScrollLocked(false);
+        return;
+      }
+      setHeroScrollLocked(!heroComplete);
+    }
+
     function setHeroProgress(next) {
       heroProgress = next;
       scheduleHeroScrub();
       if (next >= 1) {
         heroComplete = true;
         heroShowActions = true;
+        setHeroScrollLocked(false);
       } else if (next < 0.75) {
         heroShowActions = false;
       }
+      if (next < 1) syncHeroScrollLock();
     }
 
     loadHeroFrameCache();
@@ -1169,10 +1192,13 @@ const html = `<!DOCTYPE html>
     }
 
     if (!heroReduced) {
+      syncHeroScrollLock();
+
       window.addEventListener('wheel', function(e) {
         unlockHeroAudio();
         if (heroComplete && e.deltaY < 0 && window.scrollY <= 5) {
           heroComplete = false;
+          syncHeroScrollLock();
           e.preventDefault();
         } else if (!heroComplete) {
           e.preventDefault();
@@ -1191,6 +1217,7 @@ const html = `<!DOCTYPE html>
         const delta = heroTouchY - y;
         if (heroComplete && delta < -20 && window.scrollY <= 5) {
           heroComplete = false;
+          syncHeroScrollLock();
           e.preventDefault();
         } else if (!heroComplete) {
           e.preventDefault();
@@ -1201,10 +1228,6 @@ const html = `<!DOCTYPE html>
       }, { passive: false });
 
       window.addEventListener('touchend', function() { heroTouchY = 0; });
-
-      window.addEventListener('scroll', function() {
-        if (!heroComplete) window.scrollTo(0, 0);
-      });
     }
 
     applyHeroScrub();
@@ -1314,14 +1337,34 @@ const html = `<!DOCTYPE html>
     }
 
     function tickBackgroundFrames() {
-      bgCurrentVirtual = lerp(bgCurrentVirtual, bgTargetVirtual, 0.14);
-      bgDisplayOpacity = lerp(bgDisplayOpacity, bgTargetOpacity, 0.1);
+      if (shouldHoldBackground()) {
+        resetBackground(true);
+      } else {
+        bgCurrentVirtual = lerp(bgCurrentVirtual, bgTargetVirtual, 0.14);
+        bgDisplayOpacity = lerp(bgDisplayOpacity, bgTargetOpacity, 0.1);
+      }
       const frameIndex = Math.round(bgCurrentVirtual) % BG_FRAME_COUNT;
       swapBgFrame(frameIndex);
       if (bgFrameWrap) bgFrameWrap.style.opacity = String(bgDisplayOpacity);
       requestAnimationFrame(tickBackgroundFrames);
     }
     requestAnimationFrame(tickBackgroundFrames);
+
+    function resetBackground(snap) {
+      bgTargetVirtual = 0;
+      bgTargetOpacity = 0;
+      bgSmoothedProgress = 0;
+      if (snap) {
+        bgCurrentVirtual = 0;
+        bgDisplayOpacity = 0;
+        if (bgFrameWrap) bgFrameWrap.style.opacity = '0';
+      }
+    }
+
+    function shouldHoldBackground() {
+      if (document.documentElement.dataset.heroLocked === 'true') return true;
+      return window.scrollY < getHeroEnd() - 2;
+    }
 
     function onScroll() {
       const nav = document.getElementById('nav');
@@ -1333,13 +1376,18 @@ const html = `<!DOCTYPE html>
         nav.classList.add('border-white/[0.06]', 'bg-white/[0.03]');
       }
 
+      if (shouldHoldBackground()) {
+        resetBackground(true);
+        return;
+      }
+
       const heroEnd = getHeroEnd();
       const max = Math.max(document.documentElement.scrollHeight - window.innerHeight - heroEnd, 1);
-      const raw = window.scrollY <= heroEnd ? 0 : Math.min(1, (window.scrollY - heroEnd) / max);
-      bgSmoothedProgress = lerp(bgSmoothedProgress, raw, 0.04);
+      const raw = Math.min(1, (window.scrollY - heroEnd) / max);
+      bgSmoothedProgress = lerp(bgSmoothedProgress, raw, 0.08);
       const eased = smoothstep(bgSmoothedProgress);
       bgTargetVirtual = eased * BG_LOOP_COUNT * (BG_FRAME_COUNT - 1);
-      bgTargetOpacity = window.scrollY <= heroEnd ? 0 : BG_OPACITY_MIN + eased * (BG_OPACITY_MAX - BG_OPACITY_MIN);
+      bgTargetOpacity = BG_OPACITY_MIN + eased * (BG_OPACITY_MAX - BG_OPACITY_MIN);
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();

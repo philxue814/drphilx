@@ -13,6 +13,7 @@ import {
   clearHomeScrollRestore,
   peekHomeScrollRestore,
 } from "@/lib/home-scroll-restore";
+import { setHeroScrollLocked } from "@/lib/hero-scroll-lock";
 
 const HERO_VIDEO_1080 = "/hero/hero-video-1080.mp4";
 const HERO_POSTER_2K = "/hero/hero-poster-2k.webp";
@@ -288,6 +289,14 @@ export function ScrollExpandMedia({
     });
   };
 
+  const syncHeroScrollLock = () => {
+    if (reducedMotionRef.current) {
+      setHeroScrollLocked(false);
+      return;
+    }
+    setHeroScrollLocked(!sequenceCompleteRef.current);
+  };
+
   const updateProgress = (next: number) => {
     progressRef.current = next;
     scheduleVisuals();
@@ -298,9 +307,14 @@ export function ScrollExpandMedia({
         showContentRef.current = true;
         setShowContent(true);
       }
+      setHeroScrollLocked(false);
     } else if (next < 0.75 && showContentRef.current) {
       showContentRef.current = false;
       setShowContent(false);
+    }
+
+    if (next < 1) {
+      syncHeroScrollLock();
     }
   };
 
@@ -369,6 +383,7 @@ export function ScrollExpandMedia({
         showContentRef.current = true;
         setShowContent(true);
         displayedFrameRef.current = -1;
+        setHeroScrollLocked(false);
         applyVisuals();
       }
     };
@@ -392,6 +407,7 @@ export function ScrollExpandMedia({
     sequenceCompleteRef.current = true;
     showContentRef.current = true;
     setShowContent(true);
+    setHeroScrollLocked(false);
     pendingAudioProgressRef.current = null;
     if (audioRef.current) {
       audioRef.current.pause();
@@ -420,6 +436,8 @@ export function ScrollExpandMedia({
   useEffect(() => {
     if (reducedMotion) return;
 
+    syncHeroScrollLock();
+
     const handleWheel = (e: globalThis.WheelEvent) => {
       void unlockAudio();
 
@@ -429,6 +447,7 @@ export function ScrollExpandMedia({
         window.scrollY <= 5
       ) {
         sequenceCompleteRef.current = false;
+        syncHeroScrollLock();
         e.preventDefault();
       } else if (!sequenceCompleteRef.current) {
         e.preventDefault();
@@ -457,6 +476,7 @@ export function ScrollExpandMedia({
         window.scrollY <= 5
       ) {
         sequenceCompleteRef.current = false;
+        syncHeroScrollLock();
         e.preventDefault();
       } else if (!sequenceCompleteRef.current) {
         e.preventDefault();
@@ -474,19 +494,14 @@ export function ScrollExpandMedia({
       touchStartYRef.current = 0;
     };
 
-    const handleScroll = () => {
-      if (!sequenceCompleteRef.current) window.scrollTo(0, 0);
-    };
-
     window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("scroll", handleScroll);
     window.addEventListener("touchstart", handleTouchStart, { passive: false });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
+      setHeroScrollLocked(false);
       window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
