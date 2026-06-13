@@ -48,36 +48,3 @@ export const engagementPaths = [
       "I teach your team to build, maintain, and extend AI automation independently.",
   },
 ];
-
-export const processSteps = [
-  {
-    step: "01",
-    title: "Discover",
-    description:
-      "Map your specific bottlenecks and where AI creates the most leverage.",
-  },
-  {
-    step: "02",
-    title: "Architect",
-    description:
-      "Design a custom solution, not a template, around your workflow.",
-  },
-  {
-    step: "03",
-    title: "Build",
-    description:
-      "Ship working automation with real integrations and measurable output.",
-  },
-  {
-    step: "04",
-    title: "Deploy",
-    description:
-      "Launch into production with monitoring and reliability built in.",
-  },
-  {
-    step: "05",
-    title: "Train",
-    description:
-      "Hand off with documentation and coaching so your team owns it.",
-  },
-];

@@ -239,14 +239,6 @@ const engagementPaths = [
   { title: "Coaching", description: "I teach your team to build, maintain, and extend AI automation independently." },
 ];
 
-const processSteps = [
-  { step: "01", title: "Discover", description: "Map your specific bottlenecks and where AI creates the most leverage." },
-  { step: "02", title: "Architect", description: "Design a custom solution, not a template, around your workflow." },
-  { step: "03", title: "Build", description: "Ship working automation with real integrations and measurable output." },
-  { step: "04", title: "Deploy", description: "Launch into production with monitoring and reliability built in." },
-  { step: "05", title: "Train", description: "Hand off with documentation and coaching so your team owns it." },
-];
-
 const VANISH = { x: 720, y: 205 };
 const RIVER_BODY =
   "M 180 960 L 1260 960 C 1160 780, 1040 520, 940 360 C 860 270, 790 230, 720 210 C 650 230, 580 270, 500 360 C 400 520, 280 780, 180 960 Z";
@@ -518,16 +510,7 @@ const howCards = engagementPaths.map((p, i) => `
     </div>
   </div>`).join("");
 
-const processCards = processSteps.map((s) => `
-  <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 transition-all duration-200 hover:border-[#c41e3a]/25 hover:shadow-[0_8px_32px_rgba(196,30,58,0.06)]">
-    <div class="flex items-start gap-4">
-      <span class="text-sm font-medium text-[#c41e3a]/60">${s.step}</span>
-      <div>
-        <h3 class="text-lg font-semibold text-white">${s.title}</h3>
-        <p class="mt-1 text-sm text-[#a1a1aa]">${s.description}</p>
-      </div>
-    </div>
-  </div>`).join("");
+
 
 const html = `<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -697,7 +680,6 @@ const html = `<!DOCTYPE html>
       <div class="hidden items-center gap-8 md:flex">
         <a href="#work" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Work</a>
         <a href="#services" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Services</a>
-        <a href="#process" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Process</a>
         <a href="#contact" class="cursor-pointer text-sm text-white/50 transition-colors duration-200 hover:text-white">Contact</a>
       </div>
       <a href="#contact" class="btn-shimmer btn-shimmer--primary px-4 py-2 text-xs font-medium shadow-[0_4px_20px_rgba(196,30,58,0.25)] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)]"><span class="shrink-0">Get in Touch</span></a>
@@ -806,18 +788,6 @@ const html = `<!DOCTYPE html>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- PROCESS -->
-    <section id="process" class="px-6 py-28 md:px-10 md:py-40">
-      <div class="mx-auto grid max-w-7xl grid-cols-1 gap-12 md:grid-cols-2">
-        <div>
-          <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">Process</p>
-          <h2 class="text-3xl font-semibold tracking-tight text-white md:text-4xl">From bottleneck to working system</h2>
-          <p class="mt-6 text-lg leading-relaxed text-[#a1a1aa]">A structured path from understanding your problem to a deployed, maintainable AI solution.</p>
-        </div>
-        <div class="flex flex-col gap-3">${processCards}</div>
       </div>
     </section>
 
