@@ -10,15 +10,17 @@ import {
 
 const HERO_VIDEO_1080 = "/hero/hero-video-1080.mp4";
 const HERO_POSTER_2K = "/hero/hero-poster-2k.webp";
+const HERO_POSTER_VERTICAL = "/hero/frames-vertical/frame_0001.jpg";
 const HERO_AUDIO = "/hero/hero-audio.m4a";
 const HERO_FRAME_COUNT = 145;
+const MOBILE_BREAKPOINT = "(max-width: 767px)";
 const WHEEL_STEP = 0.0003;
 const TOUCH_DRAG_UP = 0.008 / 3;
 const TOUCH_DRAG_DOWN = 0.005 / 3;
-const HERO_COPY_FADE_END = 0.5;
-const HERO_COPY_CHUNK_BASE_START = 0.16;
-const HERO_COPY_CHUNK_STAGGER = 0.08;
-const HERO_COPY_CHUNK_SPAN = 0.18;
+const HERO_COPY_FADE_END = 0.72;
+const HERO_COPY_CHUNK_BASE_START = 0.22;
+const HERO_COPY_CHUNK_STAGGER = 0.12;
+const HERO_COPY_CHUNK_SPAN = 0.35;
 
 function heroCopyFade(
   progress: number,
@@ -50,8 +52,9 @@ function applyHeroCopyChunkFade(
   el.style.transform = `translate3d(0,${lift * (1 - fade)}px,0)`;
 }
 
-function heroFrameSrc(index: number) {
-  return `/hero/frames/frame_${String(index + 1).padStart(4, "0")}.jpg`;
+function heroFrameSrc(index: number, vertical: boolean) {
+  const folder = vertical ? "frames-vertical" : "frames";
+  return `/hero/${folder}/frame_${String(index + 1).padStart(4, "0")}.jpg`;
 }
 
 export interface ScrollExpandMediaProps {
@@ -77,6 +80,7 @@ export function ScrollExpandMedia({
 }: ScrollExpandMediaProps) {
   const [showContent, setShowContent] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [useVerticalFrames, setUseVerticalFrames] = useState(false);
 
   const progressRef = useRef(0);
   const reducedMotionRef = useRef(false);
@@ -283,15 +287,31 @@ export function ScrollExpandMedia({
   };
 
   useEffect(() => {
+    const mq = window.matchMedia(MOBILE_BREAKPOINT);
+    const sync = () => setUseVerticalFrames(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
     if (!useFrameScrub) return;
+
+    const vertical = useVerticalFrames;
+    displayedFrameRef.current = -1;
 
     const cache = Array.from({ length: HERO_FRAME_COUNT }, (_, i) => {
       const img = new window.Image();
       img.decoding = "async";
-      img.src = heroFrameSrc(i);
+      img.src = heroFrameSrc(i, vertical);
       return img;
     });
     frameCacheRef.current = cache;
+
+    const poster = posterRef.current;
+    if (poster) {
+      poster.src = vertical ? HERO_POSTER_VERTICAL : posterSrc;
+    }
 
     const prime = bufferARef.current;
     if (prime) {
@@ -304,7 +324,9 @@ export function ScrollExpandMedia({
       if (cache[0]?.complete) showFirst();
       else cache[0]?.addEventListener("load", showFirst, { once: true });
     }
-  }, [useFrameScrub]);
+
+    applyVisuals();
+  }, [useFrameScrub, useVerticalFrames, posterSrc]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -480,26 +502,27 @@ export function ScrollExpandMedia({
   }, [useFrameScrub, mediaSrc]);
 
   const heroMediaClass =
-    "absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%]";
+    "absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%]";
+  const activePoster = useVerticalFrames ? HERO_POSTER_VERTICAL : posterSrc;
 
   return (
     <section
       id="hero"
-      className="relative min-h-[100dvh] overflow-x-hidden bg-[#050505] md:overflow-hidden md:bg-transparent"
+      className="relative min-h-[100dvh] overflow-hidden bg-[#050505] md:bg-transparent"
     >
       {useScrollAudio && (
         <audio ref={audioRef} src={audioSrc} preload="auto" className="hidden" />
       )}
-      <div className="pointer-events-none absolute inset-x-0 z-0 max-md:top-11 max-md:h-[72dvh] md:inset-0 md:top-0 md:h-full">
-        <div className="absolute inset-0 overflow-hidden bg-[#050505] md:overflow-visible">
-          <div className="absolute left-1/2 top-0 h-full w-[112vw] -translate-x-1/2 md:inset-0 md:w-full md:translate-x-0">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[#050505]">
+          <div className="absolute inset-0 h-full w-full">
             {mediaType === "video" ? (
               useFrameScrub ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     ref={posterRef}
-                    src={posterSrc}
+                    src={activePoster}
                     alt=""
                     className={heroMediaClass}
                   />
@@ -522,7 +545,7 @@ export function ScrollExpandMedia({
                 <video
                   ref={videoRef}
                   src={mediaSrc}
-                  poster={posterSrc}
+                  poster={activePoster}
                   muted
                   playsInline
                   preload="auto"
@@ -541,24 +564,15 @@ export function ScrollExpandMedia({
             )}
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/25 via-transparent to-[#050505]/85" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,#050505_100%)] opacity-55" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/20 via-transparent to-[#050505]/70 max-md:from-[#050505]/35 max-md:to-[#050505]/90 md:from-[#050505]/25 md:to-[#050505]/85" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,#050505_100%)] opacity-15 md:opacity-55" />
       </div>
 
-      {/* Mobile: block parallax streams behind hero copy */}
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-[62dvh] z-[1] md:hidden"
-        aria-hidden
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,#050505_72%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/55 via-[#050505]/94 to-[#050505]" />
-      </div>
-
-      <div className="relative z-10 flex min-h-[100dvh] flex-col px-4 pb-10 md:block md:px-0 md:pb-0">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-end px-4 pb-10 md:block md:px-0 md:pb-0">
         {scrollToExpand && !reducedMotion && (
           <p
             ref={hintRef}
-            className="type-eyebrow pointer-events-none absolute left-4 right-4 top-[64dvh] text-center text-white/35 md:inset-x-10 md:top-[54vh]"
+            className="type-eyebrow pointer-events-none mb-3 text-center text-white/35 md:absolute md:inset-x-10 md:bottom-auto md:top-[54vh] md:mb-0"
           >
             {scrollToExpand}
           </p>
@@ -566,7 +580,7 @@ export function ScrollExpandMedia({
 
         <div
           ref={copyRef}
-          className="mx-auto mt-[68dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl"
+          className="mx-auto w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:max-w-5xl"
         >
           {children}
           {actions && (

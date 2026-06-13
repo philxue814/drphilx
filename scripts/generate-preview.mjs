@@ -706,26 +706,22 @@ const html = `<!DOCTYPE html>
 
   <main class="relative z-10">
     <!-- HERO: full-page 4K video, scroll scrubs assembly -->
-    <section id="hero" class="relative min-h-screen overflow-x-hidden bg-[#050505] md:overflow-hidden md:bg-transparent">
-      <div class="pointer-events-none absolute inset-x-0 z-0 max-md:top-11 max-md:h-[72dvh] md:inset-0 md:top-0 md:h-full">
-        <div class="absolute inset-0 overflow-hidden bg-[#050505] md:overflow-visible">
-          <div class="absolute left-1/2 top-0 h-full w-[112vw] -translate-x-1/2 md:inset-0 md:w-full md:translate-x-0">
-            <img id="hero-poster" class="absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%]" alt="" src="public/hero/hero-poster-2k.webp" />
-            <img id="hero-frame-a" class="absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%] opacity-100" alt="" decoding="sync" />
-            <img id="hero-frame-b" class="absolute inset-0 h-full w-full object-cover max-md:scale-[0.94] max-md:object-[center_58%] md:object-[center_42%] opacity-0" alt="" decoding="sync" />
+    <section id="hero" class="relative min-h-screen overflow-hidden bg-[#050505] md:bg-transparent">
+      <div class="pointer-events-none absolute inset-0 z-0">
+        <div class="absolute inset-0 bg-[#050505]">
+          <div class="absolute inset-0 h-full w-full">
+            <img id="hero-poster" class="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%]" alt="" src="public/hero/frames-vertical/frame_0001.jpg" />
+            <img id="hero-frame-a" class="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%] opacity-100" alt="" decoding="sync" />
+            <img id="hero-frame-b" class="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%] opacity-0" alt="" decoding="sync" />
           </div>
         </div>
-        <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/25 via-transparent to-[#050505]/85"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,#050505_100%)] opacity-55"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/35 via-transparent to-[#050505]/90 md:from-[#050505]/25 md:to-[#050505]/85"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,#050505_100%)] opacity-15 md:opacity-55"></div>
       </div>
       <audio id="hero-audio" class="hidden" preload="auto" src="public/hero/hero-audio.m4a"></audio>
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 top-[62dvh] z-[1] md:hidden" aria-hidden="true">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_0%,transparent_0%,#050505_72%)]"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/55 via-[#050505]/94 to-[#050505]"></div>
-      </div>
-      <div class="relative z-10 flex min-h-screen flex-col px-4 pb-10 md:block md:px-0 md:pb-0">
-        <p id="hero-hint" class="pointer-events-none absolute left-4 right-4 top-[64dvh] text-center text-[10px] font-medium tracking-[0.3em] text-white/40 uppercase transition-none md:inset-x-10 md:top-[54vh]">Scroll to assemble</p>
-        <div id="hero-copy" class="mx-auto mt-[68dvh] w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:mt-0 md:max-w-5xl">
+      <div class="relative z-10 flex min-h-screen flex-col justify-end px-4 pb-10 md:block md:px-0 md:pb-0">
+        <p id="hero-hint" class="pointer-events-none mb-3 text-center text-[10px] font-medium tracking-[0.3em] text-white/40 uppercase transition-none md:absolute md:inset-x-10 md:bottom-auto md:top-[54vh] md:mb-0">Scroll to assemble</p>
+        <div id="hero-copy" class="mx-auto w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:max-w-5xl">
           <h1 data-hero-copy class="type-display mx-auto max-w-3xl will-change-[opacity,transform] text-[clamp(1.65rem,5vw,3.5rem)] leading-[1.12] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] md:max-w-4xl">
             Custom AI Solutions<br />
             <span class="text-[#c41e3a]">Automation for</span><br />
@@ -936,6 +932,8 @@ const html = `<!DOCTYPE html>
     });
 
     const HERO_FRAME_COUNT = 145;
+    const HERO_POSTER_HORIZONTAL = 'public/hero/hero-poster-2k.webp';
+    const HERO_POSTER_VERTICAL = 'public/hero/frames-vertical/frame_0001.jpg';
     let heroProgress = 0;
     let heroComplete = false;
     let heroShowActions = false;
@@ -945,9 +943,39 @@ const html = `<!DOCTYPE html>
     let heroRaf = null;
     const heroFrameCache = [];
     const heroReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const heroMobileMq = window.matchMedia('(max-width: 767px)');
+    let heroUseVerticalFrames = heroMobileMq.matches;
 
     function heroFrameSrc(index) {
-      return 'public/hero/frames/frame_' + String(index + 1).padStart(4, '0') + '.jpg';
+      const folder = heroUseVerticalFrames ? 'frames-vertical' : 'frames';
+      return 'public/hero/' + folder + '/frame_' + String(index + 1).padStart(4, '0') + '.jpg';
+    }
+
+    function loadHeroFrameCache() {
+      heroFrameCache.length = 0;
+      heroDisplayedFrame = -1;
+      for (let i = 0; i < HERO_FRAME_COUNT; i++) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = heroFrameSrc(i);
+        heroFrameCache[i] = img;
+      }
+      const poster = document.getElementById('hero-poster');
+      if (poster) {
+        poster.src = heroUseVerticalFrames ? HERO_POSTER_VERTICAL : HERO_POSTER_HORIZONTAL;
+      }
+      const frameA = document.getElementById('hero-frame-a');
+      if (frameA && heroFrameCache[0]) {
+        function prime() {
+          if (heroFrameCache[0].complete) {
+            frameA.src = heroFrameCache[0].src;
+            heroDisplayedFrame = 0;
+          }
+        }
+        if (heroFrameCache[0].complete) prime();
+        else heroFrameCache[0].addEventListener('load', prime, { once: true });
+      }
+      applyHeroScrub();
     }
 
     function swapHeroFrame(frameIndex) {
@@ -972,10 +1000,10 @@ const html = `<!DOCTYPE html>
       else cached.addEventListener('load', commit, { once: true });
     }
 
-    const HERO_COPY_FADE_END = 0.5;
-    const HERO_COPY_CHUNK_BASE_START = 0.16;
-    const HERO_COPY_CHUNK_STAGGER = 0.08;
-    const HERO_COPY_CHUNK_SPAN = 0.18;
+    const HERO_COPY_FADE_END = 0.72;
+    const HERO_COPY_CHUNK_BASE_START = 0.22;
+    const HERO_COPY_CHUNK_STAGGER = 0.12;
+    const HERO_COPY_CHUNK_SPAN = 0.35;
 
     function heroCopyFade(progress, fadeStart, fadeEnd) {
       const span = Math.max(fadeEnd - fadeStart, 0.001);
@@ -1101,23 +1129,11 @@ const html = `<!DOCTYPE html>
       }
     }
 
-    for (let i = 0; i < HERO_FRAME_COUNT; i++) {
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = heroFrameSrc(i);
-      heroFrameCache[i] = img;
-    }
-    const frameA = document.getElementById('hero-frame-a');
-    if (frameA && heroFrameCache[0]) {
-      const prime = function() {
-        if (heroFrameCache[0].complete) {
-          frameA.src = heroFrameCache[0].src;
-          heroDisplayedFrame = 0;
-        }
-      };
-      if (heroFrameCache[0].complete) prime();
-      else heroFrameCache[0].addEventListener('load', prime, { once: true });
-    }
+    loadHeroFrameCache();
+    heroMobileMq.addEventListener('change', function() {
+      heroUseVerticalFrames = heroMobileMq.matches;
+      loadHeroFrameCache();
+    });
 
     const heroAudio = document.getElementById('hero-audio');
     if (heroAudio) {

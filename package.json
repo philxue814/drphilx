@@ -12,6 +12,7 @@
     "lint": "eslint",
     "upscale-hero": "node scripts/upscale-hero.mjs",
     "extract-hero-frames": "node scripts/extract-hero-frames.mjs",
+    "extract-hero-frames-vertical": "node scripts/extract-hero-frames-vertical.mjs",
     "preview": "node scripts/generate-preview.mjs"
   },
   "dependencies": {
