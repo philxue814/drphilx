@@ -14,14 +14,6 @@ const LOOP_COUNT = 5;
 const OPACITY_MIN = 0.3;
 const OPACITY_MAX = 0.75;
 
-const KEYWORDS = [
-  "Automation",
-  "Marketing",
-  "Operations",
-  "Consulting",
-  "Coaching",
-];
-
 function lerp(current: number, target: number, amount: number) {
   return current + (target - current) * amount;
 }
@@ -255,20 +247,6 @@ export function ScrollBackground() {
           decoding="sync"
           className="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-0"
         />
-      </div>
-
-      <div className="absolute top-1/2 left-6 hidden -translate-y-1/2 flex-col gap-4 md:flex lg:left-10">
-        {KEYWORDS.map((word, i) => (
-          <span
-            key={word}
-            className={`font-mono text-[10px] tracking-[0.2em] uppercase ${
-              i === 0 ? "text-accent" : "text-white/20"
-            }`}
-            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-          >
-            {word}
-          </span>
-        ))}
       </div>
     </div>
   );

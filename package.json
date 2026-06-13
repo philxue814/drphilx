@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:upload": "node scripts/build-cloudflare-upload.mjs",
     "postbuild": "node scripts/generate-preview.mjs",
     "start": "next start",
     "lint": "eslint",

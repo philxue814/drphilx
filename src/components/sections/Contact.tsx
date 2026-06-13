@@ -19,15 +19,39 @@ export function Contact() {
     const form = e.currentTarget;
     const data = new FormData(form);
 
+    const name = String(data.get("name") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    const company = String(data.get("company") ?? "").trim();
+    const message = String(data.get("message") ?? "").trim();
+
+    if (!name || !email || !message) {
+      setStatus("error");
+      setErrorMsg("Name, email, and message are required.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setStatus("error");
+      setErrorMsg("Invalid email address.");
+      return;
+    }
+
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("https://formsubmit.co/ajax/philxue814@gmail.com", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
-          name: data.get("name"),
-          email: data.get("email"),
-          company: data.get("company"),
-          message: data.get("message"),
+          name,
+          email,
+          company: company || "Not provided",
+          message,
+          _subject: `[DrPhilX.com] Inquiry from ${name}`,
+          _template: "table",
+          _captcha: "false",
         }),
       });
 

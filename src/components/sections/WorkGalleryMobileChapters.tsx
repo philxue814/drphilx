@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
 import { motion, useInView } from "framer-motion";
+import { CaseStudyLink } from "@/components/CaseStudyLink";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import {
   projects,
@@ -95,7 +95,7 @@ function ProjectPanel({
           {project.links && project.links.length > 0 && (
             <ProjectLinks links={project.links} />
           )}
-          <Link
+          <CaseStudyLink
             href={`/work/${project.slug}`}
             className={`inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 font-medium text-white transition-colors hover:border-accent/40 hover:text-accent ${
               minor ? "px-3 py-1.5 text-[11px]" : "px-4 py-2 text-xs"
@@ -103,7 +103,7 @@ function ProjectPanel({
           >
             Open case study
             <ArrowUpRight size={minor ? 10 : 12} weight="light" />
-          </Link>
+          </CaseStudyLink>
         </div>
       </div>
     </article>

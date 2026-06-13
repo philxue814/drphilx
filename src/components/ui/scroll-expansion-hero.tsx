@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import {
+  clearHomeScrollRestore,
+  peekHomeScrollRestore,
+} from "@/lib/home-scroll-restore";
 
 const HERO_VIDEO_1080 = "/hero/hero-video-1080.mp4";
 const HERO_POSTER_2K = "/hero/hero-poster-2k.webp";
@@ -92,30 +96,92 @@ export function ScrollExpandMedia({
   const hintRef = useRef<HTMLParagraphElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const audioReadyRef = useRef(false);
+  const audioUnlockedRef = useRef(false);
+  const pendingAudioProgressRef = useRef<number | null>(null);
   const useFrameScrub = mediaType === "video" && scrubVideo;
   const useScrollAudio = useFrameScrub && Boolean(audioSrc);
+
+  const markAudioReady = () => {
+    const audio = audioRef.current;
+    if (!audio || audioReadyRef.current) return;
+
+    if (
+      audio.readyState >= HTMLMediaElement.HAVE_METADATA &&
+      audio.duration &&
+      Number.isFinite(audio.duration)
+    ) {
+      audioReadyRef.current = true;
+      const pending =
+        pendingAudioProgressRef.current ?? progressRef.current;
+      if (pending > 0) {
+        pendingAudioProgressRef.current = null;
+        syncAudio(pending);
+      }
+    }
+  };
+
+  const unlockAudio = async () => {
+    const audio = audioRef.current;
+    if (!audio || !useScrollAudio || audioUnlockedRef.current) {
+      return audioUnlockedRef.current;
+    }
+
+    try {
+      const previousVolume = audio.volume;
+      audio.volume = 0;
+      await audio.play();
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = previousVolume;
+      audioUnlockedRef.current = true;
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const syncAudio = (progress: number) => {
     const audio = audioRef.current;
     if (!audio || !useScrollAudio || reducedMotionRef.current) return;
 
     if (progress <= 0) {
+      pendingAudioProgressRef.current = null;
       audio.pause();
       if (audio.currentTime > 0) audio.currentTime = 0;
       return;
     }
 
+    if (!audioReadyRef.current) {
+      pendingAudioProgressRef.current = progress;
+      return;
+    }
+
     const duration = audio.duration;
-    if (!duration || !Number.isFinite(duration)) return;
+    if (!duration || !Number.isFinite(duration)) {
+      pendingAudioProgressRef.current = progress;
+      return;
+    }
 
+    pendingAudioProgressRef.current = null;
     const targetTime = Math.min(progress * duration, duration - 0.01);
-    if (Math.abs(audio.currentTime - targetTime) > 0.04) {
-      audio.currentTime = targetTime;
-    }
 
-    if (audio.paused) {
-      void audio.play().catch(() => {});
-    }
+    void (async () => {
+      if (!audioUnlockedRef.current) {
+        await unlockAudio();
+      }
+
+      try {
+        if (audio.paused) {
+          await audio.play();
+        }
+        if (Math.abs(audio.currentTime - targetTime) > 0.04) {
+          audio.currentTime = targetTime;
+        }
+      } catch {
+        pendingAudioProgressRef.current = progress;
+      }
+    })();
   };
 
   const swapToFrame = (frameIndex: number) => {
@@ -262,9 +328,51 @@ export function ScrollExpandMedia({
   }, []);
 
   useEffect(() => {
+    const restoreY = peekHomeScrollRestore();
+    if (restoreY === null || restoreY <= 0) return;
+
+    if (window.scrollY > 100) {
+      clearHomeScrollRestore();
+      return;
+    }
+
+    clearHomeScrollRestore();
+
+    progressRef.current = 1;
+    sequenceCompleteRef.current = true;
+    showContentRef.current = true;
+    setShowContent(true);
+    pendingAudioProgressRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    applyVisuals();
+
+    const html = document.documentElement;
+    const previousScrollBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+
+    const restoreScroll = () => {
+      window.scrollTo(0, restoreY);
+    };
+
+    restoreScroll();
+    requestAnimationFrame(() => {
+      restoreScroll();
+      requestAnimationFrame(() => {
+        restoreScroll();
+        html.style.scrollBehavior = previousScrollBehavior;
+      });
+    });
+  }, []);
+
+  useEffect(() => {
     if (reducedMotion) return;
 
     const handleWheel = (e: globalThis.WheelEvent) => {
+      void unlockAudio();
+
       if (
         sequenceCompleteRef.current &&
         e.deltaY < 0 &&
@@ -283,6 +391,7 @@ export function ScrollExpandMedia({
     };
 
     const handleTouchStart = (e: globalThis.TouchEvent) => {
+      void unlockAudio();
       touchStartYRef.current = e.touches[0].clientY;
     };
 
@@ -339,12 +448,31 @@ export function ScrollExpandMedia({
     const audio = audioRef.current;
     if (!audio || !useScrollAudio) return;
 
-    const onReady = () => {
-      if (progressRef.current > 0) syncAudio(progressRef.current);
-    };
+    audioReadyRef.current = false;
+    audioUnlockedRef.current = false;
+    pendingAudioProgressRef.current = null;
+    audio.preload = "auto";
+    audio.load();
 
-    audio.addEventListener("loadedmetadata", onReady);
-    return () => audio.removeEventListener("loadedmetadata", onReady);
+    const readyEvents = [
+      "loadedmetadata",
+      "loadeddata",
+      "canplay",
+      "canplaythrough",
+    ] as const;
+
+    readyEvents.forEach((event) => {
+      audio.addEventListener(event, markAudioReady);
+    });
+
+    markAudioReady();
+    void fetch(audioSrc).catch(() => {});
+
+    return () => {
+      readyEvents.forEach((event) => {
+        audio.removeEventListener(event, markAudioReady);
+      });
+    };
   }, [useScrollAudio, audioSrc]);
 
   useEffect(() => {

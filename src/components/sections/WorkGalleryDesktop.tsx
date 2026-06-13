@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
 import gsap from "gsap";
+import { CaseStudyLink } from "@/components/CaseStudyLink";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import {
@@ -106,7 +106,7 @@ function ProjectCard({
   const featured = variant === "featured";
 
   return (
-    <Link
+    <CaseStudyLink
       href={`/work/${project.slug}`}
       data-work-card
       data-work-tier={getProjectTier(project)}
@@ -225,7 +225,7 @@ function ProjectCard({
           </div>
         </div>
       </div>
-    </Link>
+    </CaseStudyLink>
   );
 }
 

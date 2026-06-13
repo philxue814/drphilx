@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import { BackToWorkLink } from "@/components/BackToWorkLink";
 import {
   projects,
   getProjectBySlug,
@@ -51,13 +52,7 @@ export default async function WorkPage({ params }: PageProps) {
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl">
-        <Link
-          href="/#work"
-          className="mb-12 inline-flex cursor-pointer items-center gap-2 text-sm text-muted transition-colors hover:text-white"
-        >
-          <ArrowLeft size={16} weight="light" />
-          Back to Work
-        </Link>
+        <BackToWorkLink />
 
         <div className="mb-10 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#080808]">
           {project.logos && project.logos.length > 0 ? (
