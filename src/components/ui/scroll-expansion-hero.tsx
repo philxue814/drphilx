@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -57,6 +63,11 @@ function heroFrameSrc(index: number, vertical: boolean) {
   return `/hero/${folder}/frame_${String(index + 1).padStart(4, "0")}.jpg`;
 }
 
+function readMobileHeroViewport(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(MOBILE_BREAKPOINT).matches;
+}
+
 export interface ScrollExpandMediaProps {
   mediaType?: "video" | "image";
   mediaSrc?: string;
@@ -80,7 +91,10 @@ export function ScrollExpandMedia({
 }: ScrollExpandMediaProps) {
   const [showContent, setShowContent] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [useVerticalFrames, setUseVerticalFrames] = useState(false);
+  const [useVerticalFrames, setUseVerticalFrames] = useState(
+    readMobileHeroViewport
+  );
+  const useVerticalFramesRef = useRef(useVerticalFrames);
 
   const progressRef = useRef(0);
   const reducedMotionRef = useRef(false);
@@ -93,9 +107,10 @@ export function ScrollExpandMedia({
   const displayedFrameRef = useRef(-1);
   const activeBufferRef = useRef<0 | 1>(0);
 
-  const posterRef = useRef<HTMLImageElement>(null);
-  const bufferARef = useRef<HTMLImageElement>(null);
-  const bufferBRef = useRef<HTMLImageElement>(null);
+  const bufferAMobileRef = useRef<HTMLImageElement>(null);
+  const bufferBMobileRef = useRef<HTMLImageElement>(null);
+  const bufferADesktopRef = useRef<HTMLImageElement>(null);
+  const bufferBDesktopRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
@@ -188,18 +203,21 @@ export function ScrollExpandMedia({
     })();
   };
 
+  const getActiveBuffers = () => {
+    const vertical = useVerticalFramesRef.current;
+    return {
+      bufferA: vertical ? bufferAMobileRef.current : bufferADesktopRef.current,
+      bufferB: vertical ? bufferBMobileRef.current : bufferBDesktopRef.current,
+    };
+  };
+
   const swapToFrame = (frameIndex: number) => {
     if (frameIndex === displayedFrameRef.current) return;
 
     const cached = frameCacheRef.current[frameIndex];
-    const inactive =
-      activeBufferRef.current === 0
-        ? bufferBRef.current
-        : bufferARef.current;
-    const active =
-      activeBufferRef.current === 0
-        ? bufferARef.current
-        : bufferBRef.current;
+    const { bufferA, bufferB } = getActiveBuffers();
+    const inactive = activeBufferRef.current === 0 ? bufferB : bufferA;
+    const active = activeBufferRef.current === 0 ? bufferA : bufferB;
     if (!cached || !inactive || !active) return;
 
     const commit = () => {
@@ -287,18 +305,28 @@ export function ScrollExpandMedia({
   };
 
   useEffect(() => {
+    useVerticalFramesRef.current = useVerticalFrames;
+  }, [useVerticalFrames]);
+
+  useEffect(() => {
     const mq = window.matchMedia(MOBILE_BREAKPOINT);
-    const sync = () => setUseVerticalFrames(mq.matches);
+    const sync = () => {
+      const mobile = mq.matches;
+      useVerticalFramesRef.current = mobile;
+      setUseVerticalFrames(mobile);
+    };
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!useFrameScrub) return;
 
-    const vertical = useVerticalFrames;
+    const vertical = readMobileHeroViewport();
+    useVerticalFramesRef.current = vertical;
     displayedFrameRef.current = -1;
+    activeBufferRef.current = 0;
 
     const cache = Array.from({ length: HERO_FRAME_COUNT }, (_, i) => {
       const img = new window.Image();
@@ -308,18 +336,18 @@ export function ScrollExpandMedia({
     });
     frameCacheRef.current = cache;
 
-    const poster = posterRef.current;
-    if (poster) {
-      poster.src = vertical ? HERO_POSTER_VERTICAL : posterSrc;
+    const { bufferA, bufferB } = getActiveBuffers();
+    if (bufferB) {
+      bufferB.style.opacity = "0";
+      bufferB.removeAttribute("src");
     }
 
-    const prime = bufferARef.current;
-    if (prime) {
+    if (bufferA) {
       const showFirst = () => {
-        if (cache[0]?.complete) {
-          prime.src = cache[0].src;
-          displayedFrameRef.current = 0;
-        }
+        if (!cache[0]?.complete) return;
+        bufferA.src = cache[0].src;
+        bufferA.style.opacity = "1";
+        displayedFrameRef.current = 0;
       };
       if (cache[0]?.complete) showFirst();
       else cache[0]?.addEventListener("load", showFirst, { once: true });
@@ -503,7 +531,6 @@ export function ScrollExpandMedia({
 
   const heroMediaClass =
     "absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%]";
-  const activePoster = useVerticalFrames ? HERO_POSTER_VERTICAL : posterSrc;
 
   return (
     <section
@@ -519,33 +546,60 @@ export function ScrollExpandMedia({
             {mediaType === "video" ? (
               useFrameScrub ? (
                 <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    ref={posterRef}
-                    src={activePoster}
-                    alt=""
-                    className={heroMediaClass}
-                  />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    ref={bufferARef}
-                    alt=""
-                    decoding="sync"
-                    className={`${heroMediaClass} opacity-100`}
-                  />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    ref={bufferBRef}
-                    alt=""
-                    decoding="sync"
-                    className={`${heroMediaClass} opacity-0`}
-                  />
+                  <div className="absolute inset-0 md:hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={HERO_POSTER_VERTICAL}
+                      alt=""
+                      fetchPriority="high"
+                      className={heroMediaClass}
+                    />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      ref={bufferAMobileRef}
+                      src={HERO_POSTER_VERTICAL}
+                      alt=""
+                      decoding="sync"
+                      fetchPriority="high"
+                      className={`${heroMediaClass} opacity-100`}
+                    />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      ref={bufferBMobileRef}
+                      alt=""
+                      decoding="sync"
+                      className={`${heroMediaClass} opacity-0`}
+                    />
+                  </div>
+                  <div className="absolute inset-0 hidden md:block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={posterSrc}
+                      alt=""
+                      className={heroMediaClass}
+                    />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      ref={bufferADesktopRef}
+                      src={posterSrc}
+                      alt=""
+                      decoding="sync"
+                      className={`${heroMediaClass} opacity-100`}
+                    />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      ref={bufferBDesktopRef}
+                      alt=""
+                      decoding="sync"
+                      className={`${heroMediaClass} opacity-0`}
+                    />
+                  </div>
                 </>
               ) : (
                 <video
                   ref={videoRef}
                   src={mediaSrc}
-                  poster={activePoster}
+                  poster={posterSrc}
                   muted
                   playsInline
                   preload="auto"

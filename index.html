@@ -179,9 +179,16 @@
       <div class="pointer-events-none absolute inset-0 z-0">
         <div class="absolute inset-0 bg-[#050505]">
           <div class="absolute inset-0 h-full w-full">
-            <img id="hero-poster" class="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%]" alt="" src="public/hero/frames-vertical/frame_0001.jpg" />
-            <img id="hero-frame-a" class="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%] opacity-100" alt="" decoding="sync" />
-            <img id="hero-frame-b" class="absolute inset-0 h-full w-full object-contain object-center md:object-cover md:object-[center_42%] opacity-0" alt="" decoding="sync" />
+            <div class="absolute inset-0 md:hidden">
+              <img id="hero-poster-mobile" class="absolute inset-0 h-full w-full object-contain object-center" alt="" src="public/hero/frames-vertical/frame_0001.jpg" fetchpriority="high" />
+              <img id="hero-frame-a-mobile" class="absolute inset-0 h-full w-full object-contain object-center opacity-100" alt="" decoding="sync" fetchpriority="high" src="public/hero/frames-vertical/frame_0001.jpg" />
+              <img id="hero-frame-b-mobile" class="absolute inset-0 h-full w-full object-contain object-center opacity-0" alt="" decoding="sync" />
+            </div>
+            <div class="absolute inset-0 hidden md:block">
+              <img id="hero-poster-desktop" class="absolute inset-0 h-full w-full object-cover object-[center_42%]" alt="" src="public/hero/hero-poster-2k.webp" />
+              <img id="hero-frame-a-desktop" class="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-100" alt="" decoding="sync" src="public/hero/hero-poster-2k.webp" />
+              <img id="hero-frame-b-desktop" class="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-0" alt="" decoding="sync" />
+            </div>
           </div>
         </div>
         <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/35 via-transparent to-[#050505]/90 md:from-[#050505]/25 md:to-[#050505]/85"></div>
@@ -799,26 +806,35 @@
       return 'public/hero/' + folder + '/frame_' + String(index + 1).padStart(4, '0') + '.jpg';
     }
 
+    function getHeroFrameEls() {
+      const mobile = heroUseVerticalFrames;
+      return {
+        frameA: document.getElementById(mobile ? 'hero-frame-a-mobile' : 'hero-frame-a-desktop'),
+        frameB: document.getElementById(mobile ? 'hero-frame-b-mobile' : 'hero-frame-b-desktop'),
+      };
+    }
+
     function loadHeroFrameCache() {
       heroFrameCache.length = 0;
       heroDisplayedFrame = -1;
+      heroActiveBuffer = 0;
       for (let i = 0; i < HERO_FRAME_COUNT; i++) {
         const img = new Image();
         img.decoding = 'async';
         img.src = heroFrameSrc(i);
         heroFrameCache[i] = img;
       }
-      const poster = document.getElementById('hero-poster');
-      if (poster) {
-        poster.src = heroUseVerticalFrames ? HERO_POSTER_VERTICAL : HERO_POSTER_HORIZONTAL;
+      const els = getHeroFrameEls();
+      if (els.frameB) {
+        els.frameB.style.opacity = '0';
+        els.frameB.removeAttribute('src');
       }
-      const frameA = document.getElementById('hero-frame-a');
-      if (frameA && heroFrameCache[0]) {
+      if (els.frameA && heroFrameCache[0]) {
         function prime() {
-          if (heroFrameCache[0].complete) {
-            frameA.src = heroFrameCache[0].src;
-            heroDisplayedFrame = 0;
-          }
+          if (!heroFrameCache[0].complete) return;
+          els.frameA.src = heroFrameCache[0].src;
+          els.frameA.style.opacity = '1';
+          heroDisplayedFrame = 0;
         }
         if (heroFrameCache[0].complete) prime();
         else heroFrameCache[0].addEventListener('load', prime, { once: true });
@@ -829,10 +845,9 @@
     function swapHeroFrame(frameIndex) {
       if (frameIndex === heroDisplayedFrame) return;
       const cached = heroFrameCache[frameIndex];
-      const frameA = document.getElementById('hero-frame-a');
-      const frameB = document.getElementById('hero-frame-b');
-      const inactive = heroActiveBuffer === 0 ? frameB : frameA;
-      const active = heroActiveBuffer === 0 ? frameA : frameB;
+      const els = getHeroFrameEls();
+      const inactive = heroActiveBuffer === 0 ? els.frameB : els.frameA;
+      const active = heroActiveBuffer === 0 ? els.frameA : els.frameB;
       if (!cached || !inactive || !active) return;
 
       function commit() {
