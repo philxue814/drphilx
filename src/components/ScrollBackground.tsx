@@ -11,11 +11,12 @@ const BACKSCROLL_FRAME_COUNT = 145;
 const MOBILE_BREAKPOINT = "(max-width: 767px)";
 const FRAME_LERP = 0.14;
 const OPACITY_LERP = 0.1;
-const MOBILE_PROGRESS_LERP = 0.08;
 const DESKTOP_SCRUB_SMOOTHING = 6;
 const LOOP_COUNT = 5;
 const OPACITY_MIN = 0.3;
 const OPACITY_MAX = 0.75;
+const HERO_HOLD_ENTER_PX = 2;
+const HERO_HOLD_EXIT_PX = 12;
 
 function lerp(current: number, target: number, amount: number) {
   return current + (target - current) * amount;
@@ -61,7 +62,6 @@ export function ScrollBackground() {
   const currentVirtualRef = useRef(0);
   const targetOpacityRef = useRef(0);
   const displayOpacityRef = useRef(0);
-  const mobileProgressRef = useRef(0);
   const displayedFrameRef = useRef(-1);
   const activeBufferRef = useRef<0 | 1>(0);
   const frameCacheRef = useRef<HTMLImageElement[]>([]);
@@ -80,6 +80,7 @@ export function ScrollBackground() {
     let cancelled = false;
     let scrollTrigger: ScrollTrigger | undefined;
     let onScroll: (() => void) | undefined;
+    let holdingPastHero = false;
 
     const cache = Array.from({ length: BACKSCROLL_FRAME_COUNT }, (_, i) => {
       const img = new window.Image();
@@ -92,7 +93,6 @@ export function ScrollBackground() {
     const resetBackground = (snap = false) => {
       targetVirtualRef.current = 0;
       targetOpacityRef.current = 0;
-      mobileProgressRef.current = 0;
 
       if (snap) {
         currentVirtualRef.current = 0;
@@ -102,61 +102,18 @@ export function ScrollBackground() {
     };
 
     const shouldHoldBackground = () => {
-      if (isHeroScrollLocked()) return true;
-      return window.scrollY < getHeroEnd() - 2;
-    };
-
-    const updateScrollTargets = () => {
-      if (shouldHoldBackground()) {
-        resetBackground(true);
-        return;
+      if (isHeroScrollLocked()) {
+        holdingPastHero = false;
+        return true;
       }
 
       const heroEnd = getHeroEnd();
-      const max = Math.max(
-        document.documentElement.scrollHeight - window.innerHeight - heroEnd,
-        1
-      );
-      const raw = Math.min(1, (window.scrollY - heroEnd) / max);
-      const eased = smoothstep(raw);
-      targetVirtualRef.current =
-        eased * LOOP_COUNT * (BACKSCROLL_FRAME_COUNT - 1);
-      targetOpacityRef.current =
-        OPACITY_MIN + eased * (OPACITY_MAX - OPACITY_MIN);
-
-      if (isMobile) {
-        mobileProgressRef.current = lerp(
-          mobileProgressRef.current,
-          raw,
-          MOBILE_PROGRESS_LERP
-        );
-        const mobileEased = smoothstep(mobileProgressRef.current);
-        targetVirtualRef.current =
-          mobileEased * LOOP_COUNT * (BACKSCROLL_FRAME_COUNT - 1);
-        targetOpacityRef.current =
-          OPACITY_MIN + mobileEased * (OPACITY_MAX - OPACITY_MIN);
-      }
-    };
-
-    const primeFirstFrame = async () => {
-      const prime = bufferARef.current;
-      if (!prime || !cache[0]) return;
-      await waitForImage(cache[0]);
-      if (cancelled) return;
-      prime.src = cache[0].src;
-      await waitForImage(prime);
-      if (cancelled) return;
-      displayedFrameRef.current = 0;
-    };
-
-    const preloadAllFrames = async () => {
-      const batchSize = 12;
-      for (let i = 0; i < cache.length; i += batchSize) {
-        if (cancelled) return;
-        const batch = cache.slice(i, i + batchSize);
-        await Promise.all(batch.map((img) => waitForImage(img)));
-      }
-      if (!cancelled) framesReadyRef.current = true;
+      const threshold = holdingPastHero
+        ? heroEnd - HERO_HOLD_EXIT_PX
+        : heroEnd - HERO_HOLD_ENTER_PX;
+      const hold = window.scrollY < threshold;
+      holdingPastHero = !hold;
+      return hold;
     };
 
     const swapToFrame = (frameIndex: number) => {
@@ -195,9 +152,69 @@ export function ScrollBackground() {
       });
     };
 
-    const tick = () => {
+    const progressFromScroll = () => {
+      const heroEnd = getHeroEnd();
+      const max = Math.max(
+        document.documentElement.scrollHeight - window.innerHeight - heroEnd,
+        1
+      );
+      const raw = Math.min(1, Math.max(0, (window.scrollY - heroEnd) / max));
+      return smoothstep(raw);
+    };
+
+    const applyProgress = (eased: number) => {
+      const virtual = eased * LOOP_COUNT * (BACKSCROLL_FRAME_COUNT - 1);
+      const opacity = OPACITY_MIN + eased * (OPACITY_MAX - OPACITY_MIN);
+
+      targetVirtualRef.current = virtual;
+      targetOpacityRef.current = opacity;
+      currentVirtualRef.current = virtual;
+      displayOpacityRef.current = opacity;
+      media.style.opacity = String(opacity);
+
+      const frameIndex =
+        Math.round(currentVirtualRef.current) % BACKSCROLL_FRAME_COUNT;
+      swapToFrame(frameIndex);
+    };
+
+    const primeFirstFrame = async () => {
+      const prime = bufferARef.current;
+      if (!prime || !cache[0]) return;
+      await waitForImage(cache[0]);
+      if (cancelled) return;
+      prime.src = cache[0].src;
+      await waitForImage(prime);
+      if (cancelled) return;
+      displayedFrameRef.current = 0;
+    };
+
+    const preloadAllFrames = async () => {
+      const batchSize = 12;
+      for (let i = 0; i < cache.length; i += batchSize) {
+        if (cancelled) return;
+        const batch = cache.slice(i, i + batchSize);
+        await Promise.all(batch.map((img) => waitForImage(img)));
+      }
+      if (!cancelled) framesReadyRef.current = true;
+    };
+
+    const applyMobileBackground = () => {
       if (shouldHoldBackground()) {
         resetBackground(true);
+        return;
+      }
+
+      applyProgress(progressFromScroll());
+    };
+
+    const tick = () => {
+      if (isMobile) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      if (shouldHoldBackground()) {
+        resetBackground(false);
       } else {
         currentVirtualRef.current = lerp(
           currentVirtualRef.current,
@@ -252,9 +269,9 @@ export function ScrollBackground() {
     };
 
     const bindMobileScroll = () => {
-      onScroll = () => updateScrollTargets();
+      onScroll = () => applyMobileBackground();
       window.addEventListener("scroll", onScroll, { passive: true });
-      updateScrollTargets();
+      applyMobileBackground();
     };
 
     const start = async () => {
@@ -282,8 +299,10 @@ export function ScrollBackground() {
     void start();
 
     const handleResize = () => {
+      holdingPastHero = window.scrollY >= getHeroEnd() - HERO_HOLD_ENTER_PX;
+
       if (isMobile) {
-        updateScrollTargets();
+        applyMobileBackground();
         return;
       }
 
