@@ -1,38 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { isHeroScrollLocked } from "@/lib/hero-scroll-lock";
 
-gsap.registerPlugin(ScrollTrigger);
-
 const BACKSCROLL_FRAME_COUNT = 145;
-const MOBILE_BREAKPOINT = "(max-width: 767px)";
-const FRAME_LERP = 0.14;
-const OPACITY_LERP = 0.1;
-const DESKTOP_SCRUB_SMOOTHING = 6;
 const LOOP_COUNT = 5;
-const OPACITY_MIN = 0.3;
-const OPACITY_MAX = 0.75;
-const HERO_HOLD_ENTER_PX = 2;
-const HERO_HOLD_EXIT_PX = 12;
-
-function lerp(current: number, target: number, amount: number) {
-  return current + (target - current) * amount;
-}
-
-function smoothstep(t: number) {
-  return t * t * (3 - 2 * t);
-}
+const FIXED_OPACITY = 0.55;
 
 function backscrollFrameSrc(index: number) {
   return `/backscroll/frames/frame_${String(index + 1).padStart(4, "0")}.jpg`;
-}
-
-function getHeroEnd() {
-  const hero = document.getElementById("hero");
-  return hero ? hero.offsetTop + hero.offsetHeight : window.innerHeight;
 }
 
 function waitForImage(img: HTMLImageElement) {
@@ -58,29 +34,23 @@ export function ScrollBackground() {
   const mediaRef = useRef<HTMLDivElement>(null);
   const bufferARef = useRef<HTMLImageElement>(null);
   const bufferBRef = useRef<HTMLImageElement>(null);
-  const targetVirtualRef = useRef(0);
-  const currentVirtualRef = useRef(0);
-  const targetOpacityRef = useRef(0);
-  const displayOpacityRef = useRef(0);
-  const displayedFrameRef = useRef(-1);
-  const activeBufferRef = useRef<0 | 1>(0);
-  const frameCacheRef = useRef<HTMLImageElement[]>([]);
-  const framesReadyRef = useRef(false);
-  const swapPendingRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const isMobile = window.matchMedia(MOBILE_BREAKPOINT).matches;
+    const root = rootRef.current;
     const media = mediaRef.current;
-    if (!media) return;
+    if (!root || !media) return;
 
     let cancelled = false;
-    let scrollTrigger: ScrollTrigger | undefined;
-    let onScroll: (() => void) | undefined;
-    let holdingPastHero = false;
+    let heroEnd = 0;
+    let scrollMax = 1;
+    let displayedFrame = -1;
+    let activeBuffer: 0 | 1 = 0;
+    let framesReady = false;
+    let scrollRaf: number | null = null;
+    let resizeObserver: ResizeObserver | undefined;
 
     const cache = Array.from({ length: BACKSCROLL_FRAME_COUNT }, (_, i) => {
       const img = new window.Image();
@@ -88,93 +58,76 @@ export function ScrollBackground() {
       img.src = backscrollFrameSrc(i);
       return img;
     });
-    frameCacheRef.current = cache;
 
-    const resetBackground = (snap = false) => {
-      targetVirtualRef.current = 0;
-      targetOpacityRef.current = 0;
-
-      if (snap) {
-        currentVirtualRef.current = 0;
-        displayOpacityRef.current = 0;
-        media.style.opacity = "0";
-      }
+    const measureScrollBounds = () => {
+      const hero = document.getElementById("hero");
+      heroEnd = hero ? hero.offsetTop + hero.offsetHeight : window.innerHeight;
+      scrollMax = Math.max(
+        document.documentElement.scrollHeight - window.innerHeight - heroEnd,
+        1
+      );
     };
 
-    const shouldHoldBackground = () => {
-      if (isHeroScrollLocked()) {
-        holdingPastHero = false;
-        return true;
-      }
-
-      const heroEnd = getHeroEnd();
-      const threshold = holdingPastHero
-        ? heroEnd - HERO_HOLD_EXIT_PX
-        : heroEnd - HERO_HOLD_ENTER_PX;
-      const hold = window.scrollY < threshold;
-      holdingPastHero = !hold;
-      return hold;
-    };
-
-    const swapToFrame = (frameIndex: number) => {
-      if (
-        frameIndex === displayedFrameRef.current ||
-        swapPendingRef.current ||
-        !framesReadyRef.current
-      ) {
+    const pinToViewport = () => {
+      const viewport = window.visualViewport;
+      if (!viewport) {
+        root.style.transform = "translate3d(0,0,0)";
+        root.style.height = "100dvh";
         return;
       }
 
-      const cached = frameCacheRef.current[frameIndex];
-      const inactive =
-        activeBufferRef.current === 0
-          ? bufferBRef.current
-          : bufferARef.current;
-      const active =
-        activeBufferRef.current === 0
-          ? bufferARef.current
-          : bufferBRef.current;
+      root.style.transform = `translate3d(0, ${viewport.offsetTop}px, 0)`;
+      root.style.height = `${viewport.height}px`;
+    };
+
+    const swapToFrame = (frameIndex: number) => {
+      if (frameIndex === displayedFrame || !framesReady) return;
+
+      const cached = cache[frameIndex];
+      const inactive = activeBuffer === 0 ? bufferBRef.current : bufferARef.current;
+      const active = activeBuffer === 0 ? bufferARef.current : bufferBRef.current;
       if (!cached?.complete || cached.naturalWidth === 0 || !inactive || !active) {
         return;
       }
 
-      swapPendingRef.current = true;
       inactive.src = cached.src;
-
-      void waitForImage(inactive).then(() => {
-        swapPendingRef.current = false;
-        if (cancelled || inactive.naturalWidth === 0) return;
-
-        inactive.style.opacity = "1";
-        active.style.opacity = "0";
-        activeBufferRef.current = activeBufferRef.current === 0 ? 1 : 0;
-        displayedFrameRef.current = frameIndex;
-      });
+      inactive.style.opacity = "1";
+      active.style.opacity = "0";
+      activeBuffer = activeBuffer === 0 ? 1 : 0;
+      displayedFrame = frameIndex;
     };
 
-    const progressFromScroll = () => {
-      const heroEnd = getHeroEnd();
-      const max = Math.max(
-        document.documentElement.scrollHeight - window.innerHeight - heroEnd,
-        1
+    const applyFromScroll = () => {
+      pinToViewport();
+
+      if (prefersReduced) {
+        media.style.opacity = "0.3";
+        return;
+      }
+
+      if (isHeroScrollLocked() || window.scrollY < heroEnd) {
+        media.style.opacity = "0";
+        return;
+      }
+
+      media.style.opacity = String(FIXED_OPACITY);
+
+      const raw = Math.min(
+        1,
+        Math.max(0, (window.scrollY - heroEnd) / scrollMax)
       );
-      const raw = Math.min(1, Math.max(0, (window.scrollY - heroEnd) / max));
-      return smoothstep(raw);
+      const frameIndex =
+        Math.round(raw * LOOP_COUNT * (BACKSCROLL_FRAME_COUNT - 1)) %
+        BACKSCROLL_FRAME_COUNT;
+      swapToFrame(frameIndex);
     };
 
-    const applyProgress = (eased: number) => {
-      const virtual = eased * LOOP_COUNT * (BACKSCROLL_FRAME_COUNT - 1);
-      const opacity = OPACITY_MIN + eased * (OPACITY_MAX - OPACITY_MIN);
-
-      targetVirtualRef.current = virtual;
-      targetOpacityRef.current = opacity;
-      currentVirtualRef.current = virtual;
-      displayOpacityRef.current = opacity;
-      media.style.opacity = String(opacity);
-
-      const frameIndex =
-        Math.round(currentVirtualRef.current) % BACKSCROLL_FRAME_COUNT;
-      swapToFrame(frameIndex);
+    const scheduleApply = () => {
+      if (scrollRaf !== null) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = null;
+        applyFromScroll();
+      });
     };
 
     const primeFirstFrame = async () => {
@@ -183,9 +136,7 @@ export function ScrollBackground() {
       await waitForImage(cache[0]);
       if (cancelled) return;
       prime.src = cache[0].src;
-      await waitForImage(prime);
-      if (cancelled) return;
-      displayedFrameRef.current = 0;
+      displayedFrame = 0;
     };
 
     const preloadAllFrames = async () => {
@@ -195,144 +146,64 @@ export function ScrollBackground() {
         const batch = cache.slice(i, i + batchSize);
         await Promise.all(batch.map((img) => waitForImage(img)));
       }
-      if (!cancelled) framesReadyRef.current = true;
-    };
-
-    const applyMobileBackground = () => {
-      if (shouldHoldBackground()) {
-        resetBackground(true);
-        return;
-      }
-
-      applyProgress(progressFromScroll());
-    };
-
-    const tick = () => {
-      if (isMobile) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
-      }
-
-      if (shouldHoldBackground()) {
-        resetBackground(false);
-      } else {
-        currentVirtualRef.current = lerp(
-          currentVirtualRef.current,
-          targetVirtualRef.current,
-          FRAME_LERP
-        );
-
-        displayOpacityRef.current = lerp(
-          displayOpacityRef.current,
-          targetOpacityRef.current,
-          OPACITY_LERP
-        );
-      }
-
-      const frameIndex =
-        Math.round(currentVirtualRef.current) % BACKSCROLL_FRAME_COUNT;
-      swapToFrame(frameIndex);
-      media.style.opacity = String(displayOpacityRef.current);
-
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    const bindDesktopScroll = () => {
-      scrollTrigger?.kill();
-
-      scrollTrigger = ScrollTrigger.create({
-        trigger: document.documentElement,
-        start: () => `${getHeroEnd()} top`,
-        end: "max",
-        scrub: DESKTOP_SCRUB_SMOOTHING,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          if (shouldHoldBackground()) {
-            resetBackground(false);
-            return;
-          }
-
-          const eased = self.progress * self.progress * (3 - 2 * self.progress);
-          targetVirtualRef.current =
-            eased * LOOP_COUNT * (BACKSCROLL_FRAME_COUNT - 1);
-          targetOpacityRef.current =
-            OPACITY_MIN + eased * (OPACITY_MAX - OPACITY_MIN);
-        },
-        onLeaveBack: () => {
-          resetBackground(false);
-        },
-      });
-
-      if (shouldHoldBackground()) {
-        resetBackground(false);
-      }
-    };
-
-    const bindMobileScroll = () => {
-      onScroll = () => applyMobileBackground();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      applyMobileBackground();
+      if (!cancelled) framesReady = true;
     };
 
     const start = async () => {
+      measureScrollBounds();
+      pinToViewport();
       await primeFirstFrame();
       if (cancelled) return;
 
-      if (prefersReduced) {
-        displayOpacityRef.current = 0.3;
-        media.style.opacity = "0.3";
-        return;
-      }
-
       void preloadAllFrames();
-
-      if (isMobile) {
-        bindMobileScroll();
-      } else {
-        bindDesktopScroll();
-        ScrollTrigger.refresh();
-      }
-
-      rafRef.current = requestAnimationFrame(tick);
+      applyFromScroll();
     };
 
     void start();
 
-    const handleResize = () => {
-      holdingPastHero = window.scrollY >= getHeroEnd() - HERO_HOLD_ENTER_PX;
+    const hero = document.getElementById("hero");
+    if (hero) {
+      resizeObserver = new ResizeObserver(() => {
+        measureScrollBounds();
+        scheduleApply();
+      });
+      resizeObserver.observe(hero);
+    }
 
-      if (isMobile) {
-        applyMobileBackground();
-        return;
-      }
+    window.addEventListener("scroll", scheduleApply, { passive: true });
+    window.addEventListener("resize", () => {
+      measureScrollBounds();
+      pinToViewport();
+      scheduleApply();
+    });
 
-      bindDesktopScroll();
-      ScrollTrigger.refresh();
-    };
-
-    window.addEventListener("resize", handleResize);
+    const viewport = window.visualViewport;
+    if (viewport) {
+      viewport.addEventListener("resize", scheduleApply);
+      viewport.addEventListener("scroll", scheduleApply);
+    }
 
     return () => {
       cancelled = true;
-      scrollTrigger?.kill();
-      if (onScroll) window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", handleResize);
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+      resizeObserver?.disconnect();
+      window.removeEventListener("scroll", scheduleApply);
+      window.removeEventListener("resize", scheduleApply);
+      viewport?.removeEventListener("resize", scheduleApply);
+      viewport?.removeEventListener("scroll", scheduleApply);
+      if (scrollRaf !== null) cancelAnimationFrame(scrollRaf);
     };
   }, []);
 
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed inset-0 z-0 h-[100dvh] w-full overflow-hidden bg-[#050505]"
+      className="pointer-events-none fixed left-0 top-0 z-0 w-full overflow-hidden bg-[#050505]"
+      style={{ height: "100dvh", transform: "translate3d(0,0,0)" }}
       aria-hidden
     >
       <div
         ref={mediaRef}
-        className="absolute inset-0 opacity-0 will-change-[opacity]"
+        className="absolute inset-0 opacity-0"
         style={{ transform: "translateZ(0)" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -340,14 +211,14 @@ export function ScrollBackground() {
           ref={bufferARef}
           alt=""
           decoding="sync"
-          className="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-100"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-100"
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={bufferBRef}
           alt=""
           decoding="sync"
-          className="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-0"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-0"
         />
       </div>
     </div>

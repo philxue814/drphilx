@@ -153,10 +153,10 @@
 <body class="overflow-x-hidden">
   <p class="fixed bottom-3 left-3 z-[10000] rounded-full border border-white/10 bg-[#050505]/90 px-3 py-1.5 text-[10px] font-medium text-white/40 backdrop-blur-xl">PREVIEW: open via npm run dev for full site</p>
 
-  <div id="scroll-bg" class="pointer-events-none fixed inset-0 z-0 h-[100dvh] w-full overflow-hidden bg-[#050505]" aria-hidden="true">
+  <div id="scroll-bg" class="pointer-events-none fixed left-0 top-0 z-0 w-full overflow-hidden bg-[#050505]" style="height:100dvh;transform:translate3d(0,0,0)" aria-hidden="true">
     <div id="bg-frame-wrap" class="absolute inset-0 opacity-0" style="transform:translateZ(0)">
-      <img id="bg-frame-a" alt="" decoding="sync" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-100" />
-      <img id="bg-frame-b" alt="" decoding="sync" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-0" />
+            <img id="bg-frame-a" alt="" decoding="sync" class="absolute inset-0 h-full w-full object-cover object-center opacity-100" />
+            <img id="bg-frame-b" alt="" decoding="sync" class="absolute inset-0 h-full w-full object-cover object-center opacity-0" />
     </div>
   </div>
 
@@ -1024,37 +1024,39 @@
 
     const BG_FRAME_COUNT = 145;
     const BG_LOOP_COUNT = 5;
-    const BG_OPACITY_MIN = 0.3;
-    const BG_OPACITY_MAX = 0.75;
+    const BG_FIXED_OPACITY = 0.55;
+    const scrollBg = document.getElementById('scroll-bg');
     const bgFrameWrap = document.getElementById('bg-frame-wrap');
     const bgFrameA = document.getElementById('bg-frame-a');
     const bgFrameB = document.getElementById('bg-frame-b');
-    let bgTargetVirtual = 0;
-    let bgCurrentVirtual = 0;
-    let bgTargetOpacity = 0;
-    let bgDisplayOpacity = 0;
+    let bgHeroEnd = 0;
+    let bgScrollMax = 1;
     let bgDisplayedFrame = -1;
-    let bgHoldingPastHero = false;
     let bgActiveBuffer = 0;
     let bgFramesReady = false;
-    let bgSwapPending = false;
+    let bgScrollRaf = null;
     const bgFrameCache = [];
 
     function bgFrameSrc(index) {
       return 'public/backscroll/frames/frame_' + String(index + 1).padStart(4, '0') + '.jpg';
     }
 
-    function getHeroEnd() {
+    function measureBgScrollBounds() {
       const hero = document.getElementById('hero');
-      return hero ? hero.offsetTop + hero.offsetHeight : window.innerHeight;
+      bgHeroEnd = hero ? hero.offsetTop + hero.offsetHeight : window.innerHeight;
+      bgScrollMax = Math.max(document.documentElement.scrollHeight - window.innerHeight - bgHeroEnd, 1);
     }
 
-    function smoothstep(t) {
-      return t * t * (3 - 2 * t);
-    }
-
-    function lerp(a, b, t) {
-      return a + (b - a) * t;
+    function pinBgToViewport() {
+      if (!scrollBg) return;
+      const viewport = window.visualViewport;
+      if (!viewport) {
+        scrollBg.style.transform = 'translate3d(0,0,0)';
+        scrollBg.style.height = '100dvh';
+        return;
+      }
+      scrollBg.style.transform = 'translate3d(0,' + viewport.offsetTop + 'px,0)';
+      scrollBg.style.height = viewport.height + 'px';
     }
 
     function waitBgImage(img) {
@@ -1074,22 +1076,16 @@
     }
 
     function swapBgFrame(frameIndex) {
-      if (frameIndex === bgDisplayedFrame || bgSwapPending || !bgFramesReady || !bgFrameA || !bgFrameB) return;
+      if (frameIndex === bgDisplayedFrame || !bgFramesReady || !bgFrameA || !bgFrameB) return;
       const cached = bgFrameCache[frameIndex];
       const inactive = bgActiveBuffer === 0 ? bgFrameB : bgFrameA;
       const active = bgActiveBuffer === 0 ? bgFrameA : bgFrameB;
       if (!cached || !cached.complete || cached.naturalWidth === 0) return;
-
-      bgSwapPending = true;
       inactive.src = cached.src;
-      waitBgImage(inactive).then(function() {
-        bgSwapPending = false;
-        if (inactive.naturalWidth === 0) return;
-        inactive.style.opacity = '1';
-        active.style.opacity = '0';
-        bgActiveBuffer = bgActiveBuffer === 0 ? 1 : 0;
-        bgDisplayedFrame = frameIndex;
-      });
+      inactive.style.opacity = '1';
+      active.style.opacity = '0';
+      bgActiveBuffer = bgActiveBuffer === 0 ? 1 : 0;
+      bgDisplayedFrame = frameIndex;
     }
 
     for (let i = 0; i < BG_FRAME_COUNT; i++) {
@@ -1117,8 +1113,6 @@
     if (bgFrameCache[0] && bgFrameA) {
       waitBgImage(bgFrameCache[0]).then(function() {
         bgFrameA.src = bgFrameCache[0].src;
-        return waitBgImage(bgFrameA);
-      }).then(function() {
         bgDisplayedFrame = 0;
         preloadBgFrames();
       });
@@ -1126,44 +1120,39 @@
       preloadBgFrames();
     }
 
-    function resetBackground(snap) {
-      bgTargetVirtual = 0;
-      bgTargetOpacity = 0;
-      if (snap) {
-        bgCurrentVirtual = 0;
-        bgDisplayOpacity = 0;
-        if (bgFrameWrap) bgFrameWrap.style.opacity = '0';
-      }
-    }
-
-    function shouldHoldBackground() {
-      if (document.documentElement.dataset.heroLocked === 'true') {
-        bgHoldingPastHero = false;
-        return true;
-      }
-      const heroEnd = getHeroEnd();
-      const threshold = bgHoldingPastHero ? heroEnd - 12 : heroEnd - 2;
-      const hold = window.scrollY < threshold;
-      bgHoldingPastHero = !hold;
-      return hold;
-    }
-
     function applyBackgroundFromScroll() {
-      if (shouldHoldBackground()) {
-        resetBackground(true);
+      pinBgToViewport();
+
+      if (document.documentElement.dataset.heroLocked === 'true' || window.scrollY < bgHeroEnd) {
+        if (bgFrameWrap) bgFrameWrap.style.opacity = '0';
         return;
       }
 
-      const heroEnd = getHeroEnd();
-      const max = Math.max(document.documentElement.scrollHeight - window.innerHeight - heroEnd, 1);
-      const raw = Math.min(1, Math.max(0, (window.scrollY - heroEnd) / max));
-      const eased = smoothstep(raw);
-      bgCurrentVirtual = eased * BG_LOOP_COUNT * (BG_FRAME_COUNT - 1);
-      bgDisplayOpacity = BG_OPACITY_MIN + eased * (BG_OPACITY_MAX - BG_OPACITY_MIN);
-      bgTargetVirtual = bgCurrentVirtual;
-      bgTargetOpacity = bgDisplayOpacity;
-      if (bgFrameWrap) bgFrameWrap.style.opacity = String(bgDisplayOpacity);
-      swapBgFrame(Math.round(bgCurrentVirtual) % BG_FRAME_COUNT);
+      if (bgFrameWrap) bgFrameWrap.style.opacity = String(BG_FIXED_OPACITY);
+
+      const raw = Math.min(1, Math.max(0, (window.scrollY - bgHeroEnd) / bgScrollMax));
+      const frameIndex = Math.round(raw * BG_LOOP_COUNT * (BG_FRAME_COUNT - 1)) % BG_FRAME_COUNT;
+      swapBgFrame(frameIndex);
+    }
+
+    function scheduleBgApply() {
+      if (bgScrollRaf !== null) return;
+      bgScrollRaf = requestAnimationFrame(function() {
+        bgScrollRaf = null;
+        applyBackgroundFromScroll();
+      });
+    }
+
+    measureBgScrollBounds();
+    pinBgToViewport();
+    applyBackgroundFromScroll();
+
+    const heroEl = document.getElementById('hero');
+    if (heroEl && window.ResizeObserver) {
+      new ResizeObserver(function() {
+        measureBgScrollBounds();
+        scheduleBgApply();
+      }).observe(heroEl);
     }
 
     function onScroll() {
@@ -1176,10 +1165,18 @@
         nav.classList.add('border-white/[0.06]', 'bg-white/[0.03]');
       }
 
-      applyBackgroundFromScroll();
+      scheduleBgApply();
     }
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    window.addEventListener('resize', function() {
+      measureBgScrollBounds();
+      pinBgToViewport();
+      scheduleBgApply();
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleBgApply);
+      window.visualViewport.addEventListener('scroll', scheduleBgApply);
+    }
   </script>
 </body>
 </html>
