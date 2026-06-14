@@ -495,7 +495,7 @@ const projectCards = sortedProjects
 const serviceCards = services.map((s) => `
   <div class="glass-panel group h-full">
     <div class="flex h-full flex-col p-8 md:p-10">
-      <p class="mb-6 text-right text-xs font-medium text-[#c41e3a]/80">${s.outcome}</p>
+      <p class="mb-6 text-right text-xs font-semibold leading-snug text-[#e11d48]">${s.outcome}</p>
       <h3 class="mb-3 text-xl font-semibold text-white md:text-2xl">${s.title}</h3>
       <p class="flex-1 leading-relaxed text-[#a1a1aa]">${s.description}</p>
     </div>
@@ -754,7 +754,7 @@ const html = `<!DOCTYPE html>
     <section id="services" class="px-6 py-36 md:px-10 md:py-52">
       <div class="mx-auto max-w-7xl">
         <div class="mb-16 max-w-3xl md:mb-20">
-          <p class="mb-4 text-sm font-medium tracking-wide text-[#c41e3a]">What I Solve</p>
+          <p class="mb-4 text-sm font-medium tracking-wide text-[#e11d48]">What I Solve</p>
           <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">AI that targets your specific business bottlenecks</h2>
           <p class="mt-6 text-lg leading-relaxed text-[#a1a1aa]">Every engagement starts with your problem, then I design automation that adds real, measurable value to your operations.</p>
         </div>

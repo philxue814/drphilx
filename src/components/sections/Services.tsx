@@ -50,6 +50,7 @@ export function Services() {
         <SectionHeader
           priority
           label="What I Solve"
+          labelClassName="text-accent-bright"
           title="AI that targets your specific business bottlenecks"
           description="Every engagement starts with your problem, then I design automation that adds real, measurable value to your operations."
         />
@@ -65,7 +66,7 @@ export function Services() {
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-accent/20 bg-accent/10 text-accent">
                         <Icon size={22} weight="light" />
                       </div>
-                      <span className="text-xs font-medium text-accent/80">
+                      <span className="max-w-[11rem] text-right text-xs font-semibold leading-snug text-accent-bright">
                         {service.outcome}
                       </span>
                     </div>

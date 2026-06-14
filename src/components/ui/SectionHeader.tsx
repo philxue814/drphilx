@@ -1,5 +1,6 @@
 interface SectionHeaderProps {
   label?: string;
+  labelClassName?: string;
   title: string;
   description?: string;
   priority?: boolean;
@@ -8,6 +9,7 @@ interface SectionHeaderProps {
 
 export function SectionHeader({
   label,
+  labelClassName = "text-accent/90",
   title,
   description,
   priority = false,
@@ -20,7 +22,7 @@ export function SectionHeader({
       }`}
     >
       {label && (
-        <p className="type-eyebrow mb-4 text-accent/90">{label}</p>
+        <p className={`type-eyebrow mb-4 ${labelClassName}`}>{label}</p>
       )}
       <h2
         className={`type-display text-white ${
