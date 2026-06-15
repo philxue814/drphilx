@@ -43,6 +43,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
+      <head>
+        <link
+          rel="preload"
+          href="/hero/hero-audio.m4a"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-[#050505] font-sans text-[#fafafa]">
         {children}
       </body>

@@ -118,6 +118,7 @@ export function ScrollExpandMedia({
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioReadyRef = useRef(false);
   const audioUnlockedRef = useRef(false);
+  const unlockInFlightRef = useRef<Promise<boolean> | null>(null);
   const pendingAudioProgressRef = useRef<number | null>(null);
   const useFrameScrub = mediaType === "video" && scrubVideo;
   const useScrollAudio = useFrameScrub && Boolean(audioSrc);
@@ -135,7 +136,6 @@ export function ScrollExpandMedia({
       const pending =
         pendingAudioProgressRef.current ?? progressRef.current;
       if (pending > 0) {
-        pendingAudioProgressRef.current = null;
         syncAudio(pending);
       }
     }
@@ -149,16 +149,44 @@ export function ScrollExpandMedia({
 
     try {
       const previousVolume = audio.volume;
+      const pendingProgress =
+        pendingAudioProgressRef.current ?? progressRef.current;
       audio.volume = 0;
+
+      if (
+        audioReadyRef.current &&
+        pendingProgress > 0 &&
+        audio.duration &&
+        Number.isFinite(audio.duration)
+      ) {
+        audio.currentTime = Math.min(
+          pendingProgress * audio.duration,
+          audio.duration - 0.01
+        );
+      }
+
       await audio.play();
       audio.pause();
-      audio.currentTime = 0;
       audio.volume = previousVolume;
       audioUnlockedRef.current = true;
       return true;
     } catch {
       return false;
     }
+  };
+
+  const ensureAudioUnlocked = () => {
+    if (audioUnlockedRef.current) {
+      return Promise.resolve(true);
+    }
+
+    if (!unlockInFlightRef.current) {
+      unlockInFlightRef.current = unlockAudio().finally(() => {
+        unlockInFlightRef.current = null;
+      });
+    }
+
+    return unlockInFlightRef.current;
   };
 
   const syncAudio = (progress: number) => {
@@ -183,20 +211,23 @@ export function ScrollExpandMedia({
       return;
     }
 
-    pendingAudioProgressRef.current = null;
     const targetTime = Math.min(progress * duration, duration - 0.01);
 
     void (async () => {
-      if (!audioUnlockedRef.current) {
-        await unlockAudio();
+      const unlocked = await ensureAudioUnlocked();
+      if (!unlocked) {
+        pendingAudioProgressRef.current = progress;
+        return;
       }
 
+      pendingAudioProgressRef.current = null;
+
       try {
-        if (audio.paused) {
-          await audio.play();
-        }
         if (Math.abs(audio.currentTime - targetTime) > 0.04) {
           audio.currentTime = targetTime;
+        }
+        if (audio.paused) {
+          await audio.play();
         }
       } catch {
         pendingAudioProgressRef.current = progress;
@@ -438,8 +469,15 @@ export function ScrollExpandMedia({
 
     syncHeroScrollLock();
 
+    const primeAudioUnlock = () => {
+      void ensureAudioUnlocked();
+    };
+
+    const hero = document.getElementById("hero");
+    hero?.addEventListener("pointerdown", primeAudioUnlock, { passive: true });
+
     const handleWheel = (e: globalThis.WheelEvent) => {
-      void unlockAudio();
+      void ensureAudioUnlocked();
 
       if (
         sequenceCompleteRef.current &&
@@ -460,7 +498,7 @@ export function ScrollExpandMedia({
     };
 
     const handleTouchStart = (e: globalThis.TouchEvent) => {
-      void unlockAudio();
+      void ensureAudioUnlocked();
       touchStartYRef.current = e.touches[0].clientY;
     };
 
@@ -501,6 +539,7 @@ export function ScrollExpandMedia({
 
     return () => {
       setHeroScrollLocked(false);
+      hero?.removeEventListener("pointerdown", primeAudioUnlock);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
@@ -515,6 +554,7 @@ export function ScrollExpandMedia({
 
     audioReadyRef.current = false;
     audioUnlockedRef.current = false;
+    unlockInFlightRef.current = null;
     pendingAudioProgressRef.current = null;
     audio.preload = "auto";
     audio.load();
