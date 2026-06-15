@@ -147,14 +147,18 @@ export function ScrollExpandMedia({
       return audioUnlockedRef.current;
     }
 
+    if (!audioReadyRef.current) {
+      return false;
+    }
+
+    const previousVolume = audio.volume;
+
     try {
-      const previousVolume = audio.volume;
       const pendingProgress =
         pendingAudioProgressRef.current ?? progressRef.current;
       audio.volume = 0;
 
       if (
-        audioReadyRef.current &&
         pendingProgress > 0 &&
         audio.duration &&
         Number.isFinite(audio.duration)
@@ -167,11 +171,12 @@ export function ScrollExpandMedia({
 
       await audio.play();
       audio.pause();
-      audio.volume = previousVolume;
       audioUnlockedRef.current = true;
       return true;
     } catch {
       return false;
+    } finally {
+      audio.volume = previousVolume;
     }
   };
 
@@ -469,13 +474,6 @@ export function ScrollExpandMedia({
 
     syncHeroScrollLock();
 
-    const primeAudioUnlock = () => {
-      void ensureAudioUnlocked();
-    };
-
-    const hero = document.getElementById("hero");
-    hero?.addEventListener("pointerdown", primeAudioUnlock, { passive: true });
-
     const handleWheel = (e: globalThis.WheelEvent) => {
       void ensureAudioUnlocked();
 
@@ -539,7 +537,6 @@ export function ScrollExpandMedia({
 
     return () => {
       setHeroScrollLocked(false);
-      hero?.removeEventListener("pointerdown", primeAudioUnlock);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
