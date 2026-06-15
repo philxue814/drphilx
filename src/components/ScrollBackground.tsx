@@ -69,6 +69,15 @@ export function ScrollBackground() {
     };
 
     const pinToViewport = () => {
+      // Only track visualViewport while hero scroll is locked. Past the hero,
+      // mobile browser chrome show/hide shifts offsetTop/height and causes a
+      // grey gap + background jump on direction changes.
+      if (!isHeroScrollLocked()) {
+        root.style.transform = "translate3d(0,0,0)";
+        root.style.height = "100lvh";
+        return;
+      }
+
       const viewport = window.visualViewport;
       if (!viewport) {
         root.style.transform = "translate3d(0,0,0)";
