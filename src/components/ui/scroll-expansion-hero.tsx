@@ -686,7 +686,7 @@ export function ScrollExpandMedia({
 
         <div
           ref={copyRef}
-          className="mx-auto w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:max-w-5xl"
+          className="mx-auto w-full max-w-[42rem] px-1 text-center md:absolute md:inset-x-10 md:top-[62vh] md:max-w-5xl [&_[data-hero-copy]]:opacity-0"
         >
           {children}
           {actions && (
