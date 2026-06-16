@@ -1,5 +1,27 @@
 import type { Project } from "@/data/projects";
 
+export const PROJECT_GALLERY_SIZE = 4;
+
+export type ImageSurface = "card" | "mobile" | "hero" | "detail";
+
+export type GalleryLayout = "vertical" | "contain" | "landscape";
+
+export function getProjectGalleryLayout(project: Project): GalleryLayout {
+  return project.galleryLayout ?? "landscape";
+}
+
+export function getProjectGalleryImages(project: Project): string[] {
+  if (project.gallery && project.gallery.length > 0) {
+    return project.gallery.slice(0, PROJECT_GALLERY_SIZE);
+  }
+
+  if (project.image) {
+    return [project.image];
+  }
+
+  return [];
+}
+
 export function getProjectImageUrl(
   project: Project,
   size: "card" | "hero" | "mobile" = "card"
@@ -11,8 +33,6 @@ export function getProjectImageUrl(
 
   return `https://picsum.photos/seed/${project.slug}/${widths[size]}/${heights[size]}`;
 }
-
-type ImageSurface = "card" | "mobile" | "hero";
 
 export function getProjectImageClasses(
   project: Project,

@@ -13,7 +13,10 @@
     "upscale-hero": "node scripts/upscale-hero.mjs",
     "extract-hero-frames": "node scripts/extract-hero-frames.mjs",
     "extract-hero-frames-vertical": "node scripts/extract-hero-frames-vertical.mjs",
-    "preview": "node scripts/generate-preview.mjs"
+    "preview": "node scripts/generate-preview.mjs",
+    "gallery:capture": "node scripts/capture-guildford-screenshots.mjs",
+    "gallery:prepare": "node scripts/prepare-gallery-images.mjs",
+    "gallery:verify": "node scripts/verify-project-galleries.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -31,6 +34,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "playwright": "^1.61.0",
+    "sharp": "^0.35.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.100.0"

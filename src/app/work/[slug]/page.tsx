@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { BackToWorkLink } from "@/components/BackToWorkLink";
+import { ProjectCaseStudyGallery } from "@/components/ProjectCaseStudyGallery";
 import {
   projects,
   getProjectBySlug,
@@ -10,11 +10,6 @@ import {
 } from "@/data/projects";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { ProjectLinks } from "@/components/ui/ProjectLinks";
-import { ProjectLogoStrip } from "@/components/ui/ProjectLogoStrip";
-import {
-  getProjectHeroImageClasses,
-  getProjectImageUrl,
-} from "@/lib/project-media";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -40,11 +35,6 @@ export default async function WorkPage({ params }: PageProps) {
   const project = getProjectBySlug(slug);
   if (!project) notFound();
 
-  const gallery =
-    project.gallery && project.gallery.length > 0
-      ? project.gallery
-      : [getProjectImageUrl(project, "hero")];
-
   return (
     <main className="ambient-glow min-h-[100dvh] overflow-x-hidden bg-[#050505] px-6 py-12">
       <div className="pointer-events-none fixed inset-0">
@@ -54,37 +44,7 @@ export default async function WorkPage({ params }: PageProps) {
       <div className="relative z-10 mx-auto max-w-4xl">
         <BackToWorkLink />
 
-        <div className="mb-10 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#080808]">
-          {project.logos && project.logos.length > 0 ? (
-            <ProjectLogoStrip logos={project.logos} surface="hero" />
-          ) : (
-            <div
-              className={getProjectHeroImageClasses(project)}
-              style={{
-                backgroundImage: `url(${getProjectImageUrl(project, "hero")})`,
-              }}
-            />
-          )}
-        </div>
-
-        {gallery.length > 1 && (
-          <div className="mb-10 grid grid-cols-2 gap-4">
-            {gallery.map((src) => (
-              <div
-                key={src}
-                className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/[0.08] bg-[#080808]"
-              >
-                <Image
-                  src={src}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 50vw, 400px"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <ProjectCaseStudyGallery project={project} />
 
         <span className="mb-4 inline-block rounded-full border border-accent/25 bg-accent/5 px-3 py-1 text-xs font-medium text-accent">
           {categoryLabels[project.category]}

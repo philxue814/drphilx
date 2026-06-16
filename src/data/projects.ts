@@ -28,6 +28,8 @@ export interface Project {
   logos?: string[];
   /** Extra images for case study galleries */
   gallery?: string[];
+  /** How case-study stacked photos are framed */
+  galleryLayout?: "vertical" | "contain" | "landscape";
   client?: string;
   links?: ProjectLink[];
   tags: string[];
@@ -149,6 +151,13 @@ export const projects: Project[] = [
     outcome:
       "A live patient-facing site that establishes trust and drives exam bookings.",
     image: "/projects/screenshot-exam-equipment.jpg",
+    gallery: [
+      "/projects/gallery/guildford-landing/01.jpg",
+      "/projects/gallery/guildford-landing/02.jpg",
+      "/projects/gallery/guildford-landing/03.jpg",
+      "/projects/gallery/guildford-landing/04.jpg",
+    ],
+    galleryLayout: "landscape",
     links: [
       {
         label: "guildfordeyeclinic.ca",
@@ -169,6 +178,13 @@ export const projects: Project[] = [
     outcome:
       "Improved discoverability on Google Search and Maps without outsourcing.",
     image: "/projects/guildford-hero-oct.jpg",
+    gallery: [
+      "/projects/gallery/ai-seo/01.jpg",
+      "/projects/gallery/ai-seo/02.jpg",
+      "/projects/gallery/ai-seo/03.jpg",
+      "/projects/gallery/ai-seo/04.jpg",
+    ],
+    galleryLayout: "contain",
     links: [
       {
         label: "guildfordeyeclinic.ca",
@@ -194,6 +210,13 @@ export const projects: Project[] = [
       "Consistent clinic social presence with zero daily manual effort.",
     image: "/projects/instagram-logo.png",
     imageFit: "contain",
+    gallery: [
+      "/projects/gallery/social-automation/01.jpg",
+      "/projects/gallery/social-automation/02.jpg",
+      "/projects/gallery/social-automation/03.jpg",
+      "/projects/gallery/social-automation/04.jpg",
+    ],
+    galleryLayout: "vertical",
     logos: [
       "/projects/instagram-logo.png",
       "/projects/youtube-logo.png",
@@ -221,7 +244,13 @@ export const projects: Project[] = [
       "Built an automated system that matches vacation requests with available coverage physicians.",
     outcome:
       "Coverage planning runs itself, with fewer gaps and less back-and-forth.",
-
+    gallery: [
+      "/projects/gallery/coverage-system/01.jpg",
+      "/projects/gallery/coverage-system/02.jpg",
+      "/projects/gallery/coverage-system/03.jpg",
+      "/projects/gallery/coverage-system/04.jpg",
+    ],
+    galleryLayout: "contain",
     tags: ["Scheduling", "Healthcare Ops", "Automation"],
   },
   {
@@ -234,7 +263,13 @@ export const projects: Project[] = [
       "Automated sell put / sell call alerts using technical analysis and volatility measures via APIs and MCPs.",
     outcome:
       "Market signals delivered seamlessly to run on any device.",
-
+    gallery: [
+      "/projects/gallery/options-alerts/01.jpg",
+      "/projects/gallery/options-alerts/02.jpg",
+      "/projects/gallery/options-alerts/03.jpg",
+      "/projects/gallery/options-alerts/04.jpg",
+    ],
+    galleryLayout: "contain",
     tags: ["Trading", "Alerts", "Technical Analysis"],
   },
   {
@@ -248,7 +283,13 @@ export const projects: Project[] = [
     outcome:
       "Two live Amazon titles, from concept to shelf without a publisher.",
     image: "/projects/captain-clear.jpg",
-    gallery: ["/projects/captain-clear.jpg", "/projects/money-meadow.jpg"],
+    gallery: [
+      "/projects/gallery/childrens-books/01.jpg",
+      "/projects/gallery/childrens-books/02.jpg",
+      "/projects/gallery/childrens-books/03.jpg",
+      "/projects/gallery/childrens-books/04.jpg",
+    ],
+    galleryLayout: "vertical",
     links: [
       {
         label: "Captain Clear on Amazon",
@@ -271,7 +312,12 @@ export const projects: Project[] = [
       "Built an AI pipeline to automatically remove watermarks and logos from any video.",
     outcome:
       "Clean, usable video assets without manual editing.",
-
+    gallery: [
+      "/projects/gallery/video-cleaner/01.jpg",
+      "/projects/gallery/video-cleaner/02.jpg",
+      "/projects/gallery/video-cleaner/03.jpg",
+      "/projects/gallery/video-cleaner/04.jpg",
+    ],
     tags: ["Video AI", "Media", "Automation"],
   },
   {
@@ -284,7 +330,12 @@ export const projects: Project[] = [
       "AI system that organizes, categorizes, and summarizes incoming fax referrals automatically.",
     outcome:
       "Faster referral processing and cleaner administrative workflows.",
-
+    gallery: [
+      "/projects/gallery/fax-summarizer/01.jpg",
+      "/projects/gallery/fax-summarizer/02.jpg",
+      "/projects/gallery/fax-summarizer/03.jpg",
+      "/projects/gallery/fax-summarizer/04.jpg",
+    ],
     tags: ["Healthcare", "Document AI", "Summarization"],
   },
 ];
