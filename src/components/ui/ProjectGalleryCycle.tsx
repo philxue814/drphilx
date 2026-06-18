@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Project } from "@/data/projects";
 import {
   getProjectGalleryImages,
@@ -9,6 +9,7 @@ import {
 } from "@/lib/project-media";
 
 const CYCLE_MS = 4200;
+const SWIPE_THRESHOLD_PX = 40;
 
 interface ProjectGalleryCycleProps {
   project: Project;
@@ -107,6 +108,8 @@ export function ProjectGalleryCycle({
   const layout = getProjectGalleryLayout(project);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const didSwipeRef = useRef(false);
 
   useEffect(() => {
     if (images.length <= 1 || paused) return;
@@ -137,6 +140,46 @@ export function ProjectGalleryCycle({
     setActiveIndex((current) => (current + 1) % images.length);
   };
 
+  const retreat = () => {
+    setActiveIndex((current) => (current - 1 + images.length) % images.length);
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (!isDetail) return;
+
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    didSwipeRef.current = false;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (!isDetail) return;
+
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
+    if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+
+    didSwipeRef.current = true;
+    if (deltaX < 0) advance();
+    else retreat();
+  };
+
+  const handleClick = () => {
+    if (!isDetail) return;
+    if (didSwipeRef.current) {
+      didSwipeRef.current = false;
+      return;
+    }
+    advance();
+  };
+
   return (
     <div
       className={`relative ${
@@ -152,8 +195,10 @@ export function ProjectGalleryCycle({
       <button
         type="button"
         aria-label={`Cycle project photos, showing ${activeIndex + 1} of ${images.length}`}
-        className={`relative h-full w-full ${isDetail ? "cursor-pointer" : "pointer-events-none"}`}
-        onClick={isDetail ? advance : undefined}
+        className={`relative h-full w-full ${isDetail ? "cursor-pointer touch-pan-y" : "pointer-events-none"}`}
+        onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <div className={`absolute ${insetClass}`} aria-live="polite">
           {images.map((src, index) => {
