@@ -13,6 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-icon.png",
+  },
   title: "Dr Phil X | Custom AI Automation & Consulting",
   description:
     "Dr Phil X builds custom AI automation that solves specific business bottlenecks. Workflow automation, AI-driven marketing, operations intelligence, and coaching.",

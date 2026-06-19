@@ -7,7 +7,7 @@
     "build": "next build",
     "build:upload": "node scripts/build-cloudflare-upload.mjs",
     "deploy:cf": "npm run build && wrangler deploy",
-    "postbuild": "node scripts/generate-preview.mjs",
+    "postbuild": "node scripts/generate-favicon.mjs && node scripts/generate-preview.mjs",
     "start": "next start",
     "lint": "eslint",
     "upscale-hero": "node scripts/upscale-hero.mjs",
@@ -16,7 +16,8 @@
     "preview": "node scripts/generate-preview.mjs",
     "gallery:capture": "node scripts/capture-guildford-screenshots.mjs",
     "gallery:prepare": "node scripts/prepare-gallery-images.mjs",
-    "gallery:verify": "node scripts/verify-project-galleries.mjs"
+    "gallery:verify": "node scripts/verify-project-galleries.mjs",
+    "favicon:generate": "node scripts/generate-favicon.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
