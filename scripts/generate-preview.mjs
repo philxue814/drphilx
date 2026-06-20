@@ -23,7 +23,6 @@ const projects = [
     title: "AI Voice Agents: Overflow & After Hours",
     category: "healthcare",
     catLabel: "Healthcare",
-    client: "Guildford Eye Clinic",
     bottleneck:
       "After-hours and overflow calls went to voicemail or rang out, losing exam bookings and constant staff interruptions for the same questions.",
     solution:
@@ -43,7 +42,6 @@ const projects = [
     title: "AI Social Media Automation",
     category: "marketing",
     catLabel: "Marketing",
-    client: "Guildford Eye Clinic",
     bottleneck: "Manual social posting consumed hours every week across Instagram and Facebook.",
     solution: "Automated @guildfordeyeclinic video posts twice weekly and short posts once weekly with AI-driven content pipelines.",
     outcome: "Consistent clinic social presence with zero daily manual effort.",
@@ -79,7 +77,7 @@ const projects = [
   },
   {
     slug: "coverage-system",
-    title: "Guildford Coverage System",
+    title: "Doctor Coverage System",
     category: "healthcare",
     catLabel: "Healthcare",
     bottleneck: "Scheduling vacation and coverage for 7-8 doctors created constant administrative chaos.",

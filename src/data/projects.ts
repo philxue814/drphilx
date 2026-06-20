@@ -172,7 +172,6 @@ export const projects: Project[] = [
     slug: "voice-agents",
     title: "AI Voice Agents: Overflow & After Hours",
     category: "healthcare",
-    client: "Guildford Eye Clinic",
     bottleneck:
       "After-hours and overflow calls went to voicemail or rang out, losing exam bookings and constant staff interruptions for the same questions.",
     solution:
@@ -193,7 +192,6 @@ export const projects: Project[] = [
     slug: "social-automation",
     title: "AI Social Media Automation",
     category: "marketing",
-    client: "Guildford Eye Clinic",
     bottleneck:
       "Manual social posting consumed hours every week across Instagram and Facebook.",
     solution:
@@ -259,7 +257,7 @@ export const projects: Project[] = [
   },
   {
     slug: "coverage-system",
-    title: "Guildford Coverage System",
+    title: "Doctor Coverage System",
     category: "healthcare",
     bottleneck:
       "Scheduling vacation and coverage for 7-8 doctors created constant administrative chaos.",
