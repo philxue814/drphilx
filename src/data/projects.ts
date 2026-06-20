@@ -68,8 +68,8 @@ export function getProjectTier(project: Project): ProjectTier {
 export const allViewOrder: string[] = [
   "guildford-landing",
   "voice-agents",
-  "ai-seo",
   "social-automation",
+  "ai-seo",
   "childrens-books",
   "coverage-system",
   "options-alerts",
@@ -190,37 +190,6 @@ export const projects: Project[] = [
     tags: ["Voice AI", "Vapi", "RingCentral", "Automation"],
   },
   {
-    slug: "ai-seo",
-    title: "Google SEO + AI SEO",
-    category: "marketing",
-    client: "Guildford Eye Clinic",
-    bottleneck:
-      "Guildford Eye Clinic was nearly invisible in search without an agency budget.",
-    solution:
-      "Built a dual SEO system for the clinic: Google Business Profile optimization plus AI-driven local content strategy.",
-    outcome:
-      "Improved discoverability on Google Search and Maps without outsourcing.",
-    image: "/projects/guildford-hero-oct.jpg",
-    gallery: [
-      "/projects/gallery/ai-seo/01.jpg",
-      "/projects/gallery/ai-seo/02.jpg",
-      "/projects/gallery/ai-seo/03.jpg",
-      "/projects/gallery/ai-seo/04.jpg",
-    ],
-    galleryLayout: "contain",
-    links: [
-      {
-        label: "guildfordeyeclinic.ca",
-        href: "https://guildfordeyeclinic.ca",
-      },
-      {
-        label: "Google Maps listing",
-        href: "https://maps.google.com/?q=Guildford+Eye+Clinic+Surrey+BC",
-      },
-    ],
-    tags: ["SEO", "AI Content", "Analytics"],
-  },
-  {
     slug: "social-automation",
     title: "AI Social Media Automation",
     category: "marketing",
@@ -256,6 +225,37 @@ export const projects: Project[] = [
       },
     ],
     tags: ["Automation", "Content", "Social"],
+  },
+  {
+    slug: "ai-seo",
+    title: "Google SEO + AI SEO",
+    category: "marketing",
+    client: "Guildford Eye Clinic",
+    bottleneck:
+      "Guildford Eye Clinic was nearly invisible in search without an agency budget.",
+    solution:
+      "Built a dual SEO system for the clinic: Google Business Profile optimization plus AI-driven local content strategy.",
+    outcome:
+      "Improved discoverability on Google Search and Maps without outsourcing.",
+    image: "/projects/guildford-hero-oct.jpg",
+    gallery: [
+      "/projects/gallery/ai-seo/01.jpg",
+      "/projects/gallery/ai-seo/02.jpg",
+      "/projects/gallery/ai-seo/03.jpg",
+      "/projects/gallery/ai-seo/04.jpg",
+    ],
+    galleryLayout: "contain",
+    links: [
+      {
+        label: "guildfordeyeclinic.ca",
+        href: "https://guildfordeyeclinic.ca",
+      },
+      {
+        label: "Google Maps listing",
+        href: "https://maps.google.com/?q=Guildford+Eye+Clinic+Surrey+BC",
+      },
+    ],
+    tags: ["SEO", "AI Content", "Analytics"],
   },
   {
     slug: "coverage-system",

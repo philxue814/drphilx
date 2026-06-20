@@ -39,21 +39,6 @@ const projects = [
     ],
   },
   {
-    slug: "ai-seo",
-    title: "Google SEO + AI SEO",
-    category: "marketing",
-    catLabel: "Marketing",
-    client: "Guildford Eye Clinic",
-    bottleneck: "Guildford Eye Clinic was nearly invisible in search without an agency budget.",
-    solution: "Built a dual SEO system for the clinic: Google Business Profile optimization plus AI-driven local content strategy.",
-    outcome: "Improved discoverability on Google Search and Maps without outsourcing.",
-    image: "public/projects/guildford-hero-oct.jpg",
-    links: [
-      { label: "guildfordeyeclinic.ca", href: "https://guildfordeyeclinic.ca" },
-      { label: "Google Maps listing", href: "https://maps.google.com/?q=Guildford+Eye+Clinic+Surrey+BC" },
-    ],
-  },
-  {
     slug: "social-automation",
     title: "AI Social Media Automation",
     category: "marketing",
@@ -75,6 +60,21 @@ const projects = [
         label: "Facebook @guildfordeyeclinic",
         href: "https://www.facebook.com/people/Guildford-Eye-Clinic/61589361077307/",
       },
+    ],
+  },
+  {
+    slug: "ai-seo",
+    title: "Google SEO + AI SEO",
+    category: "marketing",
+    catLabel: "Marketing",
+    client: "Guildford Eye Clinic",
+    bottleneck: "Guildford Eye Clinic was nearly invisible in search without an agency budget.",
+    solution: "Built a dual SEO system for the clinic: Google Business Profile optimization plus AI-driven local content strategy.",
+    outcome: "Improved discoverability on Google Search and Maps without outsourcing.",
+    image: "public/projects/guildford-hero-oct.jpg",
+    links: [
+      { label: "guildfordeyeclinic.ca", href: "https://guildfordeyeclinic.ca" },
+      { label: "Google Maps listing", href: "https://maps.google.com/?q=Guildford+Eye+Clinic+Surrey+BC" },
     ],
   },
   {
@@ -212,8 +212,9 @@ function getTier(project) {
 
 const allViewOrder = [
   "guildford-landing",
-  "ai-seo",
+  "voice-agents",
   "social-automation",
+  "ai-seo",
   "childrens-books",
   "coverage-system",
   "options-alerts",
@@ -226,6 +227,7 @@ const allViewSpans = [
   "md:col-span-5 md:row-span-2",
   "md:col-span-8",
   "md:col-span-4",
+  "md:col-span-6",
   "md:col-span-6",
   "md:col-span-6",
   "md:col-span-6",
