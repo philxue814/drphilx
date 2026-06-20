@@ -31,6 +31,7 @@ const ALL_VIEW_SPANS = [
   "md:col-span-6",
   "md:col-span-6",
   "md:col-span-6",
+  "md:col-span-6",
 ];
 
 function getBentoSpan(

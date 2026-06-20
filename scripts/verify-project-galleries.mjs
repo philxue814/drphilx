@@ -7,6 +7,7 @@ const galleryRoot = path.join(root, "public", "projects", "gallery");
 
 const slugs = [
   "guildford-landing",
+  "voice-agents",
   "ai-seo",
   "social-automation",
   "coverage-system",
