@@ -170,13 +170,13 @@ export const projects: Project[] = [
   },
   {
     slug: "voice-agents",
-    title: "AI Voice Agents — Overflow & After Hours",
+    title: "AI Voice Agents: Overflow & After Hours",
     category: "healthcare",
     client: "Guildford Eye Clinic",
     bottleneck:
-      "After-hours and overflow calls went to voicemail or rang out—lost exam bookings and constant staff interruptions for the same questions.",
+      "After-hours and overflow calls went to voicemail or rang out, losing exam bookings and constant staff interruptions for the same questions.",
     solution:
-      "Built bilingual AI voice agents on Vapi and RingCentral that answer when lines are busy or the clinic is closed—texting live booking links, transferring to staff, and notifying the team of missed calls.",
+      "Built bilingual AI voice agents on Vapi and RingCentral that answer when lines are busy or the clinic is closed, texting live booking links, transferring to staff, and notifying the team of missed calls.",
     outcome:
       "Live pilot capturing overflow and after-hours demand with automated booking SMS, live transfers, and staff alerts in English and Mandarin.",
     image: "/projects/gallery/voice-agents/01.jpg",
@@ -187,16 +187,6 @@ export const projects: Project[] = [
       "/projects/gallery/voice-agents/04.jpg",
     ],
     galleryLayout: "landscape",
-    links: [
-      {
-        label: "guildfordeyeclinic.ca",
-        href: "https://guildfordeyeclinic.ca",
-      },
-      {
-        label: "Book an exam",
-        href: "https://www.specsavers.ca/booking?store_id=22",
-      },
-    ],
     tags: ["Voice AI", "Vapi", "RingCentral", "Automation"],
   },
   {
@@ -272,7 +262,7 @@ export const projects: Project[] = [
     title: "Guildford Coverage System",
     category: "healthcare",
     bottleneck:
-      "Scheduling vacation and coverage for 7–8 doctors created constant administrative chaos.",
+      "Scheduling vacation and coverage for 7-8 doctors created constant administrative chaos.",
     solution:
       "Built an automated system that matches vacation requests with available coverage physicians.",
     outcome:
