@@ -175,9 +175,9 @@ export const projects: Project[] = [
     bottleneck:
       "After-hours and overflow calls went to voicemail or rang out, losing exam bookings and constant staff interruptions for the same questions.",
     solution:
-      "Built bilingual AI voice agents on Vapi and RingCentral that answer when lines are busy or the clinic is closed, texting live booking links, transferring to staff, and notifying the team of missed calls.",
+      "Built AI voice agents that answer when lines are busy or the clinic is closed, texting live booking links, transferring to staff, and notifying the team of missed calls. Bilingual options available.",
     outcome:
-      "Live pilot capturing overflow and after-hours demand with automated booking SMS, live transfers, and staff alerts in English and Mandarin.",
+      "Captures missed revenue opportunities from overflow and after-hours calls while reducing the cost of repetitive phone handling.",
     image: "/projects/gallery/voice-agents/01.jpg",
     gallery: [
       "/projects/gallery/voice-agents/01.jpg",
@@ -186,7 +186,7 @@ export const projects: Project[] = [
       "/projects/gallery/voice-agents/04.jpg",
     ],
     galleryLayout: "landscape",
-    tags: ["Voice AI", "Vapi", "RingCentral", "Automation"],
+    tags: ["Voice AI", "Automation", "After Hours"],
   },
   {
     slug: "social-automation",
